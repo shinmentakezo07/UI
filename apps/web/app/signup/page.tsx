@@ -13,9 +13,9 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full h-11 bg-white text-black font-medium rounded-lg hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      className="w-full h-11 bg-white text-black font-bold rounded-lg hover:bg-white/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]"
     >
-      {pending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create account"}
+      {pending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Account"}
     </button>
   );
 }
@@ -52,11 +52,11 @@ function PasswordStrength({ password }: { password: string }) {
       {requirements.map((req, i) => (
         <div key={i} className="flex items-center gap-2 text-xs">
           {req.met ? (
-            <Check className="w-3 h-3 text-emerald-500" />
+            <Check className="w-3 h-3 text-white" />
           ) : (
             <X className="w-3 h-3 text-gray-500" />
           )}
-          <span className={req.met ? "text-emerald-500" : "text-gray-500"}>
+          <span className={req.met ? "text-white" : "text-gray-500"}>
             {req.label}
           </span>
         </div>
@@ -79,8 +79,8 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex bg-[#050505] selection:bg-emerald-500/30 selection:text-white">
       {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#020202]">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/20 via-transparent to-cyan-600/20" />
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#000000]">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-transparent to-cyan-600/10" />
          {/* Animated Grid */}
          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
         
@@ -90,32 +90,32 @@ export default function SignupPage() {
 
         <div className="relative z-10 flex flex-col justify-between p-16 w-full h-full">
           <Link href="/" className="text-2xl font-bold tracking-tighter text-white flex items-center gap-2">
-            <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse" />
-            DRA
+            <div className="w-3 h-3 bg-white rounded-full animate-pulse shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+            Shinmen Takzo
           </Link>
           
           <div className="max-w-md">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-gray-300 text-xs font-mono mb-6 backdrop-blur-md">
-                <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
-                INITIALIZING_USER_PROTOCOL
+                <span className="w-2 h-2 rounded-full bg-white animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
+                API_GATEWAY_REGISTRATION
              </div>
             <h2 className="text-4xl font-bold text-white mb-6 tracking-tight">
-              Start building <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">the future.</span>
+              Access 100+ AI models <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-400">through one API.</span>
             </h2>
             <p className="text-gray-400 text-lg mb-8 font-light">
-              Join the elite network of developers mastering the next generation of software engineering.
+              Join thousands of developers building with transparent, pay-per-token pricing.
             </p>
             
             <div className="space-y-4 font-mono text-sm">
               {[
-                "Access to 50+ interactive courses",
-                "Real-time code playground",
-                "AI-powered learning assistant",
-                "Certificate of completion"
+                "Instant API key generation",
+                "Access to GPT-4, Claude, Gemini & more",
+                "Real-time usage analytics",
+                "Pay only for what you use"
               ].map((feature, i) => (
                 <div key={i} className="flex items-center gap-3 group">
-                  <div className="w-5 h-5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
-                    <Check className="w-3 h-3 text-emerald-500" />
+                  <div className="w-5 h-5 rounded bg-white/10 border border-white/20 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                    <Check className="w-3 h-3 text-white" />
                   </div>
                   <span className="text-gray-400 group-hover:text-gray-200 transition-colors">{feature}</span>
                 </div>
@@ -133,7 +133,7 @@ export default function SignupPage() {
               ))}
             </div>
             <p className="text-gray-400 text-xs font-mono">
-              <span className="text-white font-bold">10,000+</span> DEV_UNITS ACTIVE
+              <span className="text-white font-bold">50,000+</span> DEVELOPERS BUILDING
             </p>
           </div>
         </div>
@@ -142,7 +142,7 @@ export default function SignupPage() {
       {/* Right Panel - Form */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12 relative">
         {/* Mobile Background Texture */}
-         <div className="absolute inset-0 lg:hidden bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.1),transparent_40%)]" />
+         <div className="absolute inset-0 lg:hidden bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.08),transparent_40%)]" />
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -150,13 +150,14 @@ export default function SignupPage() {
           className="w-full max-w-[400px] relative z-10"
         >
           {/* Mobile Logo */}
-          <Link href="/" className="lg:hidden text-2xl font-bold text-white mb-12 block">
-            DRA
+          <Link href="/" className="lg:hidden text-2xl font-bold text-white mb-12 flex items-center gap-2">
+            <div className="w-3 h-3 bg-white rounded-full animate-pulse shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+            Shinmen Takzo
           </Link>
 
           <div className="mb-10">
-            <h1 className="text-3xl font-bold text-white mb-3 tracking-tight">Initialize Account</h1>
-            <p className="text-gray-400">Configure your identity to begin.</p>
+            <h1 className="text-3xl font-bold text-white mb-3 tracking-tight">Create Account</h1>
+            <p className="text-gray-400">Get your API key and start building.</p>
           </div>
 
           {/* Social Login */}
@@ -185,19 +186,19 @@ export default function SignupPage() {
           <form action={dispatch} className="space-y-5">
             <div className="space-y-2">
               <label htmlFor="name" className="text-xs font-mono font-medium text-gray-400 uppercase">
-                User Identity
+                Full Name
               </label>
               <div className="relative group">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-emerald-400 transition-colors" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-white transition-colors" />
                 <input
                   ref={nameRef}
                   id="name"
                   name="name"
                   type="text"
-                  placeholder="YOUR_NAME"
+                  placeholder="Your full name"
                   required
                   autoComplete="name"
-                  className="w-full h-12 pl-10 pr-4 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-600 focus:outline-none focus:border-emerald-500/50 focus:bg-white/10 transition-all text-sm font-mono"
+                  className="w-full h-12 pl-10 pr-4 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-600 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all text-sm"
                 />
               </div>
               {state.errors?.name && (
@@ -210,15 +211,15 @@ export default function SignupPage() {
                 Email Address
               </label>
               <div className="relative group">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-emerald-400 transition-colors" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-white transition-colors" />
                 <input
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="NAME@COMPANY.COM"
+                  placeholder="your.email@company.com"
                   required
                   autoComplete="email"
-                  className="w-full h-12 pl-10 pr-4 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-600 focus:outline-none focus:border-emerald-500/50 focus:bg-white/10 transition-all text-sm font-mono"
+                  className="w-full h-12 pl-10 pr-4 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-600 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all text-sm"
                 />
               </div>
               {state.errors?.email && (
@@ -228,10 +229,10 @@ export default function SignupPage() {
 
             <div className="space-y-2">
               <label htmlFor="password" className="text-xs font-mono font-medium text-gray-400 uppercase">
-                Security Key
+                Password
               </label>
               <div className="relative group">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-emerald-400 transition-colors" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-white transition-colors" />
                 <input
                   id="password"
                   name="password"
@@ -242,7 +243,7 @@ export default function SignupPage() {
                   required
                   minLength={6}
                   autoComplete="new-password"
-                  className="w-full h-12 pl-10 pr-10 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-600 focus:outline-none focus:border-emerald-500/50 focus:bg-white/10 transition-all text-sm font-mono"
+                  className="w-full h-12 pl-10 pr-10 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-600 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all text-sm"
                 />
                 <button
                   type="button"
@@ -264,7 +265,7 @@ export default function SignupPage() {
                 animate={{ opacity: 1, height: "auto" }}
                 className={`p-3 rounded-lg text-sm font-mono ${
                   state.message.includes("Success")
-                    ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                    ? "bg-white/10 border border-white/20 text-white"
                     : "bg-red-500/10 border border-red-500/20 text-red-400"
                 }`}
               >
@@ -277,10 +278,16 @@ export default function SignupPage() {
 
           <p className="mt-8 text-center text-sm text-gray-500">
             Already have an account?{" "}
-            <Link href="/login" className="text-white hover:text-emerald-400 transition-colors font-medium">
+            <Link href="/login" className="text-white hover:text-white/80 transition-colors font-medium">
               Sign in
             </Link>
           </p>
+
+          <div className="mt-12 pt-6 border-t border-white/5 text-center">
+              <p className="text-[10px] text-gray-700 font-mono">
+                SECURE API GATEWAY • 256-BIT ENCRYPTION • SOC 2 COMPLIANT
+              </p>
+          </div>
         </motion.div>
       </div>
     </div>

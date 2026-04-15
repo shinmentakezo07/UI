@@ -18,8 +18,6 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
-    { label: 'Learn', href: '/learn', icon: BookOpen },
-    { label: 'Courses', href: '/courses', icon: BookOpen },
     { label: 'Playground', href: '/playground', icon: Code2 },
     { label: 'Dashboard', href: '/dashboard', icon: Trophy, authRequired: true },
   ];
@@ -74,7 +72,7 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg shadow-blue-500/20">
                         <Zap className="h-4 w-4 text-white fill-white" />
                     </div>
-                    <span className="font-bold text-lg tracking-tight text-white">Pranisa Sherstha</span>
+                    <span className="font-bold text-lg tracking-tight text-white">Shinmen Takzo</span>
                   </Link>
                   <button 
                     onClick={() => setSidebarOpen(false)}
@@ -101,7 +99,7 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
                     <motion.div variants={itemVariants} className="pt-4 pb-2 px-4">
                         <div className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
                             <span className="w-1 h-1 rounded-full bg-[#00ff9d] shadow-[0_0_5px_#00ff9d]"></span>
-                            Learning Path
+                            Quick Access
                         </div>
                     </motion.div>
                     

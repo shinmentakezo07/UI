@@ -36,7 +36,7 @@ import {
   X
 } from "lucide-react";
 import Terminal from "./Terminal";
-import { Terminal as XTerminal } from "xterm";
+import { Terminal as XTerminal } from "@xterm/xterm";
 import { Icons } from "../icons";
 import ThemeSelector, { EditorTheme } from "./ThemeSelector";
 import LayoutSelector, { LayoutMode } from "./LayoutSelector";

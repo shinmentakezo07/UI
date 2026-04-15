@@ -16,8 +16,8 @@ export default function Terminal({ onMount }: TerminalProps) {
     initialized.current = true;
 
     const initTerminal = async () => {
-      const { Terminal: XTerminal } = await import('xterm');
-      const { FitAddon } = await import('xterm-addon-fit');
+      const { Terminal: XTerminal } = await import('@xterm/xterm');
+      const { FitAddon } = await import('@xterm/addon-fit');
 
       const term = new XTerminal({
         theme: {

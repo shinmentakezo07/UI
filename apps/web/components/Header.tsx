@@ -35,9 +35,8 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                     </Link>
                     <nav className="hidden md:flex items-center gap-1">
                         {[
-                            { label: 'Learn', path: '/learn' },
+                            { label: 'Models', path: '/models' },
                             { label: 'Playground', path: '/playground' },
-                            { label: 'AI Lab', path: '/dashboard/chat' },
                             { label: 'Pricing', path: '/#pricing' }
                         ].map((item) => (
                             <Link 
@@ -117,8 +116,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
 
           <nav className="hidden md:flex items-center gap-1" onMouseLeave={() => setHoveredPath(null)}>
             {[
-                { label: 'Learn', path: '/learn' },
-                { label: 'Courses', path: '/courses' },
+                { label: 'Models', path: '/models' },
                 { label: 'Playground', path: '/playground' },
                 { label: 'Pricing', path: '/#pricing' }
             ].map((item) => (

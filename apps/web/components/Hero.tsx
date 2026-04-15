@@ -241,28 +241,28 @@ function TypewriterText({ text, delay = 0, className }: { text: string, delay?: 
 // --- Interactive Terminal ---
 const codeSnippets = [
   {
-    id: "ts",
-    name: "app.tsx",
-    language: "typescript",
-    icon: ReactIcon,
-    color: "text-blue-400",
-    code: `import { Future } from '@dra/core';\n\nexport default function App() {\n  const skills = useSkills();\n\n  return (\n    <Future>\n      <Mastery path="fullstack" />\n      <AIHelper active={true} />\n      {skills.map(s => <Badge key={s} />)}\n    </Future>\n  );\n}`
+    id: "curl",
+    name: "curl-request.sh",
+    language: "bash",
+    icon: TerminalIcon,
+    color: "text-green-400",
+    code: `curl https://api.shinmen-takzo.ai/v1/chat/completions \\\n  -H "Authorization: Bearer sk-stz-..." \\\n  -H "Content-Type: application/json" \\\n  -d '{\n    "model": "gpt-4",\n    "messages": [\n      {"role": "user", "content": "Hello!"}\n    ]\n  }'\n\n# Response: 200 OK\n# Routed to: openai/gpt-4\n# Latency: 847ms`
   },
   {
     id: "py",
-    name: "model.py",
+    name: "openai-client.py",
     language: "python",
     icon: PythonIcon,
     color: "text-yellow-400",
-    code: `import torch\nfrom dra import NeuralLink\n\nclass AIModel(NeuralLink):\n    def __init__(self):\n        super().__init__()\n        self.layers = [\n            "Capture Context",\n            "Analyze Pattern",\n            "Generate Solution"\n        ]\n\n    def predict(self, input):\n        return self.think(input)`
+    code: `from openai import OpenAI\n\nclient = OpenAI(\n    base_url="https://api.shinmen-takzo.ai/v1",\n    api_key="sk-stz-..."\n)\n\nresponse = client.chat.completions.create(\n    model="claude-opus-4",\n    messages=[{"role": "user", "content": "Hi"}]\n)\n\nprint(response.choices[0].message.content)`
   },
   {
-    id: "rs",
-    name: "main.rs",
-    language: "rust",
-    icon: RustIcon,
-    color: "text-orange-400",
-    code: `use dra::engine::*;\n\nfn main() {\n    let mut engine = Engine::new();\n    engine.ignite();\n    \n    loop {\n        match engine.status() {\n            Status::Ready => println!("Go!"),\n            Status::Error(e) => panic!("{}", e),\n        }\n    }\n}`
+    id: "ts",
+    name: "streaming.ts",
+    language: "typescript",
+    icon: TypeScriptIcon,
+    color: "text-blue-400",
+    code: `import OpenAI from 'openai';\n\nconst client = new OpenAI({\n  baseURL: 'https://api.shinmen-takzo.ai/v1',\n  apiKey: process.env.STZ_API_KEY\n});\n\nconst stream = await client.chat.completions.create({\n  model: 'gemini-2.0-flash',\n  messages: [{ role: 'user', content: 'Hello' }],\n  stream: true\n});\n\nfor await (const chunk of stream) {\n  process.stdout.write(chunk.choices[0]?.delta?.content || '');\n}`
   }
 ];
 
@@ -660,40 +660,40 @@ export function Hero() {
                 className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-8"
             >
                 {/* Badge */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2 }}
                     className="group inline-flex items-center gap-3 px-3 py-1.5 rounded bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all cursor-default hover:border-primary/50"
                 >
-                    <div className="flex items-center gap-2 px-1.5 py-0.5 rounded bg-primary/20 text-primary text-[10px] font-mono font-bold">
-                        <Hash className="w-3 h-3" />
-                        V2.4
+                    <div className="flex items-center gap-2 px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold">
+                        <Sparkles className="w-3 h-3" />
+                        NEW
                     </div>
                     <span className="text-xs font-mono text-gray-400 tracking-wide group-hover:text-white transition-colors">
-                        SYSTEM ONLINE // READY TO DEPLOY
+                        Pay-per-use pricing now live
                     </span>
                 </motion.div>
 
                 {/* Animated Headline */}
                 <div className="space-y-2">
                     <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-[0.9] text-white">
-                        <TypewriterText text="Code the" delay={0.3} /> <br />
-                        <GlitchText text="FUTURE" className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black" />
+                        <TypewriterText text="Universal" delay={0.3} /> <br />
+                        <GlitchText text="LLM GATEWAY" className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black" />
                     </h1>
                 </div>
 
                 {/* Description */}
-                <motion.p 
+                <motion.p
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 1.2 }}
                     className="text-lg md:text-xl text-muted-foreground max-w-xl font-light leading-relaxed"
                 >
-                    Initialize your journey into advanced development. 
-                    <span className="text-white font-medium"> Interactive IDE</span>, 
-                    <span className="text-white font-medium"> AI Pair Programming</span>, and 
-                    <span className="text-white font-medium"> Global Leaderboards</span>.
+                    Access 100+ AI models through one unified API.
+                    <span className="text-white font-medium"> Pay per token</span>,
+                    <span className="text-white font-medium"> transparent pricing</span>, and
+                    <span className="text-white font-medium"> zero subscriptions</span>.
                 </motion.p>
 
                 {/* Buttons */}
@@ -705,12 +705,12 @@ export function Hero() {
                 >
                     <Link href="/signup" className="w-full sm:w-auto">
                         <CyberButton primary className="w-full sm:w-auto">
-                            Start Sequence <ArrowRight className="w-4 h-4" />
+                            Get API Key <ArrowRight className="w-4 h-4" />
                         </CyberButton>
                     </Link>
 
                     <CyberButton onClick={() => setIsVideoOpen(true)} className="w-full sm:w-auto">
-                        <Play className="w-4 h-4" /> Initialize Demo
+                        <Play className="w-4 h-4" /> View Demo
                     </CyberButton>
                 </motion.div>
 

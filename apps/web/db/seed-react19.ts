@@ -101,7 +101,7 @@ async function upsertCourse() {
       title: "Client vs Server Components (Practical Rules)",
       slug: "client-vs-server-components",
       order: 2 as number,
-      content: `# Client vs Server Components\n\n## Server Components (default)\nUse when you: \n- Fetch from DB\n- Use secrets / server-only SDKs\n- Want faster initial load and less JS\n\n## Client Components\nUse when you: \n- Use state/effects\n- Use browser APIs\n- Handle user interaction\n\n## Rule of thumb\nDefault to Server Components until you need client-only features.\n\n\n\n```mermaid\nflowchart LR\nA[Server Component] -->|props| B[Client Component]\nB -->|user events| B\nA -->|fetch data| DB[(Database)]\n```\n`,
+      content: `# Client vs Server Components\n\n## Server Components (default)\nUse when you: \n- Fetch from DB\n- Use secrets / server-only SDKs\n- Want faster initial load and less JS\n\n## Client Components\nUse when you: \n- Use state/effects\n- Use browser APIs\n- Handle user interaction\n\n## Rule of thumb\nDefault to Server Components until you need client-only features.\n\n## Component Flow\nServer Components can pass props to Client Components, which handle user events. Server Components can fetch data directly from the database.\n`,
       codeSnippet: `// Server Component: can fetch data\nexport default async function Page() {\n  const data = await fetch('https://example.com/api').then(r => r.json());\n  return <pre>{JSON.stringify(data, null, 2)}</pre>;\n}\n`,
       exercises: JSON.stringify([
         {
@@ -122,7 +122,7 @@ async function upsertCourse() {
       title: "Suspense + Streaming UI",
       slug: "suspense-streaming",
       order: 3 as number,
-      content: `# Suspense + Streaming\n\nSuspense lets React **pause rendering** until data is ready, and stream the UI in chunks.\n\n## Why it matters\n- Better perceived performance\n- Compose loading states\n\n\n\n```jsx\nimport { Suspense } from 'react';\n\nexport default function Page() {\n  return (\n    <Suspense fallback={<div>Loading…</div>}>\n      <UserPanel />\n    </Suspense>\n  );\n}\n```\n`,
+      content: `# Suspense + Streaming\n\nSuspense lets React **pause rendering** until data is ready, and stream the UI in chunks.\n\n## Why it matters\n- Better perceived performance\n- Compose loading states\n\n## Example Usage\nWrap components in Suspense boundaries with fallback UI while data loads.\n`,
       codeSnippet: `import { Suspense } from 'react';\n\nasync function Slow() {\n  await new Promise(r => setTimeout(r, 1000));\n  return <div>Loaded after 1s</div>;\n}\n\nexport default function Page() {\n  return (\n    <Suspense fallback={<div>Loading…</div>}>\n      {/* @ts-expect-error Server Component */}\n      <Slow />\n    </Suspense>\n  );\n}\n`,
       exercises: JSON.stringify([
         {
