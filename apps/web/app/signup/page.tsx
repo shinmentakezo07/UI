@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom";
 import { signup, authenticateSocial, type State } from "@/app/lib/actions";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Mail, Lock, User, Loader2, Eye, EyeOff, Check, X } from "lucide-react";
+import { Mail, Lock, User, Loader2, Eye, EyeOff, Check, X, ArrowLeft, Home } from "lucide-react";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -78,6 +78,16 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex bg-[#050505] selection:bg-emerald-500/30 selection:text-white">
+      {/* Back to Home Button */}
+      <Link
+        href="/"
+        className="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-white text-sm font-medium group"
+      >
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+        <Home className="w-4 h-4" />
+        <span>Back to Home</span>
+      </Link>
+
       {/* Left Panel - Branding */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#000000]">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-transparent to-cyan-600/10" />
