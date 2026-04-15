@@ -413,7 +413,7 @@ export default function Home() {
                     Access 100+ models with{" "}
                     <span className="text-emerald-400 font-bold relative">
                         transparent, per-token pricing
-                        <div className="absolute -bottom-1 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent" />
+                        <span className="absolute -bottom-1 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent block" />
                     </span>.
                     <br className="hidden md:block" />
                     No subscriptions, no hidden fees.{" "}

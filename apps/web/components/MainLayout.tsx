@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Header } from "@/components/Header";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
@@ -16,6 +17,10 @@ interface MenuItem {
 
 export function MainLayout({ children, user }: { children: React.ReactNode, user?: any }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  
+  // Check if we're on a dashboard route
+  const isDashboardRoute = pathname?.startsWith('/dashboard');
 
   const menuItems = [
     { label: 'Playground', href: '/playground', icon: Code2 },
@@ -44,7 +49,7 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased selection:bg-primary/30" suppressHydrationWarning>
-        <Header onMenuClick={() => setSidebarOpen(true)} user={user} />
+        {!isDashboardRoute && <Header onMenuClick={() => setSidebarOpen(true)} user={user} />}
         
         <AnimatePresence>
           {sidebarOpen && (
@@ -180,7 +185,7 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
           )}
         </AnimatePresence>
 
-        <div className="flex pt-20">
+        <div className={`flex ${isDashboardRoute ? '' : 'pt-20'}`}>
             <main className="flex-1 w-full min-w-0">
                 {children}
             </main>
