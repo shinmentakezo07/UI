@@ -9,5 +9,9 @@ if (!process.env.DATABASE_URL && process.env.NODE_ENV !== 'production') {
   console.warn("⚠️  DATABASE_URL is not defined. Using placeholder for build.");
 }
 
-const sql = neon(DATABASE_URL);
+const sql = neon(DATABASE_URL, {
+  fetchOptions: {
+    cache: 'no-store',
+  },
+});
 export const db = drizzle(sql, { schema });

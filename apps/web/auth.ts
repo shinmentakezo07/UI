@@ -11,6 +11,7 @@ import bcrypt from "bcryptjs";
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
   providers: [
     GitHub,
     Google,
