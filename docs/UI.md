@@ -10,7 +10,6 @@ This document details the visual theme, style patterns, and UI components used i
 ### Primary Colors
 - **Background**: `#050505` (near-black)
 - **Card Background**: `#0A0A0A` / `#0e0e0e` (dark gray)
-- **Neon Green (Primary)**: `#00ff9d` - Used for accents, borders, highlights
 - **Electric Blue**: `#3b82f6` (blue-500)
 - **Neon Violet**: `#7c3aed` (violet-600)
 - **Purple**: `#a855f7` (purple-500)

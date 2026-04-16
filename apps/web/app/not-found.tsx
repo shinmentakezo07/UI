@@ -75,14 +75,6 @@ export default function NotFound() {
             <ArrowLeft className="w-4 h-4" />
             Go Back
           </button>
-          
-          <Link
-            href="/learn"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-all"
-          >
-            <Search className="w-4 h-4" />
-            Browse Courses
-          </Link>
         </motion.div>
         
         {/* Decorative Elements */}

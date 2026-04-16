@@ -23,7 +23,6 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import Mermaid from "./Mermaid";
-import LessonPlan from "./LessonPlan";
 import { AIThinkingProcess } from "./AIThinkingProcess";
 import { GlassCard } from "./ui/glass-card";
 
@@ -494,21 +493,6 @@ export default function ChatPlayground() {
                     >
                       {(m as any).toolInvocations?.map((toolInvocation: any) => {
                         const toolCallId = toolInvocation.toolCallId;
-
-                        if (toolInvocation.toolName === "create_lesson_plan") {
-                          if ("result" in toolInvocation) {
-                            return <LessonPlan key={toolCallId} data={toolInvocation.result} />;
-                          }
-                          return (
-                            <div
-                              key={toolCallId}
-                              className="flex items-center gap-2 text-xs text-violet-400 font-mono animate-pulse p-4 bg-violet-500/5 rounded-lg border border-violet-500/20"
-                            >
-                              <Brain className="w-3 h-3" />
-                              Constructing Pedagogical Structure...
-                            </div>
-                          );
-                        }
                         return null;
                       })}
 

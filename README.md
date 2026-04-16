@@ -1,15 +1,16 @@
-# DRA - Interactive Coding Education Platform
+# DRA - AI Gateway Platform
 
-DRA is a modern, full-stack educational platform built with Next.js 16 and React 19, designed to provide an immersive environment for learning software development. It features an in-browser IDE, interactive lessons, progress tracking, and a gamified learning experience.
+DRA is a modern, full-stack AI gateway platform built with Next.js 16 and React 19, providing unified access to multiple AI models with usage tracking, API key management, and credit-based billing.
 
 ## 🚀 Key Features
 
-- **Interactive Coding Environment**: Built-in Monaco Editor and xterm.js terminal allow users to write and execute code directly in the browser.
-- **Course Management**: Structured learning paths with courses, lessons, and quizzes.
-- **User Dashboard**: Track learning progress, completed courses, and daily streaks.
-- **Gamified Experience**: Earn XP, badges, and compete on leaderboards (Planned/In-Progress).
-- **Modern UI/UX**: Responsive cyberpunk-inspired design using Tailwind CSS and Framer Motion animations.
-- **Secure Authentication**: User accounts managed via NextAuth v5.
+- **AI Gateway**: Unified API access to multiple AI providers (OpenRouter, OpenAI, Anthropic, etc.)
+- **API Key Management**: Generate and manage API keys with usage tracking
+- **Credit System**: Track usage costs and manage user credits
+- **Usage Analytics**: Detailed logs of API requests, tokens, latency, and costs
+- **User Dashboard**: Monitor API usage, manage keys, and view analytics
+- **Modern UI/UX**: Responsive design using Tailwind CSS and Framer Motion animations
+- **Secure Authentication**: User accounts managed via NextAuth v5
 
 ## 🛠️ Tech Stack
 
@@ -20,8 +21,6 @@ DRA is a modern, full-stack educational platform built with Next.js 16 and React
 - **Database**: [Neon](https://neon.tech/) (PostgreSQL)
 - **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
 - **Authentication**: [NextAuth.js v5](https://authjs.dev/)
-- **Code Editor**: [Monaco Editor](https://microsoft.github.io/monaco-editor/)
-- **Terminal**: [xterm.js](https://xtermjs.org/)
 - **Build System**: [Turborepo](https://turbo.build/)
 
 ## 📂 Project Structure
