@@ -274,3 +274,70 @@
   text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
 }
 
+/* Custom Scrollbar with Electric Blue Liquid Flow Effect */
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+  border-radius: 10px;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    #000000 0%,
+    #3b82f6 20%,
+    #7c3aed 50%,
+    #a855f7 80%,
+    #000000 100%
+  );
+  background-size: 100% 300%;
+  border-radius: 10px;
+  border: 2px solid #000000;
+  animation: liquid-flow 4s ease-in-out infinite;
+  box-shadow: 
+    inset 0 0 10px rgba(59, 130, 246, 0.4),
+    0 0 15px rgba(59, 130, 246, 0.3),
+    0 0 25px rgba(124, 58, 237, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    #000000 0%,
+    #60a5fa 20%,
+    #8b5cf6 50%,
+    #c084fc 80%,
+    #000000 100%
+  );
+  background-size: 100% 300%;
+  animation: liquid-flow 2.5s ease-in-out infinite;
+  box-shadow: 
+    inset 0 0 15px rgba(59, 130, 246, 0.6),
+    0 0 20px rgba(59, 130, 246, 0.5),
+    0 0 35px rgba(124, 58, 237, 0.4),
+    0 0 50px rgba(168, 85, 247, 0.3);
+}
+
+@keyframes liquid-flow {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 0% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3b82f6 #000000;
+}
+
