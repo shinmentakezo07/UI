@@ -37,10 +37,10 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                         {[
                             { label: 'Models', path: '/models' },
                             { label: 'Playground', path: '/playground' },
-                            { label: 'Pricing', path: '/#pricing' }
+                            { label: 'Pricing', path: '/pricing' }
                         ].map((item) => (
-                            <Link 
-                                key={item.path} 
+                            <Link
+                                key={item.path}
                                 href={item.path}
                                 className="relative px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors rounded-lg"
                             >
@@ -118,10 +118,10 @@ export function Header({ user, onMenuClick }: HeaderProps) {
             {[
                 { label: 'Models', path: '/models' },
                 { label: 'Playground', path: '/playground' },
-                { label: 'Pricing', path: '/#pricing' }
+                { label: 'Pricing', path: '/pricing' }
             ].map((item) => (
-                <Link 
-                    key={item.path} 
+                <Link
+                    key={item.path}
                     href={item.path}
                     onMouseEnter={() => setHoveredPath(item.path)}
                     className="relative px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors rounded-lg"
