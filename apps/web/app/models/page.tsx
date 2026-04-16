@@ -120,21 +120,6 @@ export default function ModelsPage() {
                         animate={{ opacity: 1, y: 0 }}
                         className="text-center mb-16"
                     >
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.2 }}
-                            className="group inline-flex items-center gap-3 px-4 py-2 rounded-lg bg-gradient-to-r from-primary/10 to-cyan-500/10 border border-primary/30 backdrop-blur-sm hover:border-primary/50 transition-all cursor-default mb-6"
-                        >
-                            <div className="flex items-center gap-2 px-2 py-1 rounded bg-primary/30 text-primary text-[10px] font-mono font-bold">
-                                <Sparkles className="w-3 h-3" />
-                                2026
-                            </div>
-                            <span className="text-xs font-mono text-gray-300 tracking-wide group-hover:text-white transition-colors">
-                                {allModels.length} latest models • Real-time pricing from OpenRouter
-                            </span>
-                        </motion.div>
-
                         <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-[0.9] text-white mb-6">
                             <motion.span
                                 initial={{ opacity: 0, y: 20 }}
@@ -142,29 +127,9 @@ export default function ModelsPage() {
                                 transition={{ delay: 0.3 }}
                                 className="block"
                             >
-                                Every AI Model,
-                            </motion.span>
-                            <motion.span
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.4 }}
-                                className="block text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black mt-2"
-                            >
-                                <span className="relative inline-block bg-gradient-to-r from-primary via-cyan-400 to-blue-400 bg-clip-text text-transparent animate-gradient">
-                                    One API Key
-                                </span>
+                                AI Models
                             </motion.span>
                         </h1>
-
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 }}
-                            className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto font-light leading-relaxed"
-                        >
-                            Latest models from 2026. Compare pricing, switch instantly,
-                            <span className="text-white font-medium"> pay only for tokens used</span>.
-                        </motion.p>
                     </motion.div>
 
                     {/* Search and Filters */}

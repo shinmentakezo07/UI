@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Menu, Search, Command, Zap, Settings, Flame, Star } from "lucide-react";
+import { Menu, Search, Command, Zap, Settings } from "lucide-react";
 import { signOutAction } from "@/app/lib/actions";
 import { useState, useEffect } from "react";
 
@@ -62,16 +62,6 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                     <div className="flex gap-3">
                         {user ? (
                             <div className="hidden md:flex items-center gap-3">
-                                <div className="flex items-center gap-2 mr-2">
-                                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500">
-                                        <Flame className="w-3.5 h-3.5 fill-current" />
-                                        <span className="text-xs font-bold font-mono">{user.streakCurrent || 0}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[#3b82f6]/10 border border-[#3b82f6]/20 text-[#3b82f6]">
-                                        <Star className="w-3.5 h-3.5 fill-current" />
-                                        <span className="text-xs font-bold font-mono">{user.xp || 0} XP</span>
-                                    </div>
-                                </div>
                                 <Link href="/dashboard" className="flex items-center gap-3 pl-1 pr-2 py-1 rounded-full bg-[#3b82f6]/5 border border-[#3b82f6]/20">
                                     <div className="relative w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border border-[#3b82f6]/30">
                                         <div className="absolute inset-0 bg-[#3b82f6]/20" />
@@ -161,18 +151,6 @@ export function Header({ user, onMenuClick }: HeaderProps) {
           <div className="flex gap-3" suppressHydrationWarning>
              {user ? (
                 <div className="hidden md:flex items-center gap-3" suppressHydrationWarning>
-                    {/* XP and Streak Display */}
-                    <div className="flex items-center gap-2 mr-2">
-                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500" title="Current Streak">
-                            <Flame className="w-3.5 h-3.5 fill-current" />
-                            <span className="text-xs font-bold font-mono">{user.streakCurrent || 0}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400" title="Total XP">
-                            <Star className="w-3.5 h-3.5 fill-current" />
-                            <span className="text-xs font-bold font-mono">{user.xp || 0} XP</span>
-                        </div>
-                    </div>
-
                         <Link href="/dashboard" className="flex items-center gap-3 pl-1 pr-2 py-1 rounded-full bg-[#3b82f6]/5 border border-[#3b82f6]/20 hover:bg-[#3b82f6]/10 transition-all cursor-pointer group">
                             <div className="relative w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border border-[#3b82f6]/30 group-hover:border-[#3b82f6] transition-colors">
                                 {/* Cyberpunk Avatar BG */}

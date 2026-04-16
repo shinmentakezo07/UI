@@ -11,6 +11,46 @@ export const providerLogos: Record<string, string> = {
     
     // Moonshot AI - Local PNG logo
     moonshotai: "/logos/moonshot.png",
+    
+    // QW (custom provider for MoonshotAI models)
+    qw: "/logos/moonshot.png",
+    
+    // GPT models (OpenAI)
+    gpt: "/logos/openai.svg",
+    
+    // Claude models (Anthropic)
+    claude: "/logos/anthropic.svg",
+    
+    // Gemini models (Google)
+    gemini: "/logos/google.svg",
+    
+    // Meta / Llama
+    meta: "/logos/meta.svg",
+    llama: "/logos/meta.svg",
+    
+    // Mistral AI
+    mistralai: "/logos/mistral.svg",
+    mistral: "/logos/mistral.svg",
+    
+    // DeepSeek
+    deepseek: "/logos/deepseek.png",
+    "deepseek-ai": "/logos/deepseek.png",
+    
+    // xAI / Grok
+    xai: "/logos/xai.svg",
+    grok: "/logos/xai.svg",
+    
+    // Alibaba / Qwen
+    alibaba: "/logos/alibaba.svg",
+    qwen: "/logos/alibaba.svg",
+    
+    // Zhipu AI / GLM
+    zhipuai: "/logos/zhipu.png",
+    glm: "/logos/zhipu.png",
+    
+    // MiniMax
+    minimaxai: "/logos/minimax.png",
+    minimax: "/logos/minimax.png",
 };
 
 export function getProviderLogo(modelId: string): string | null {

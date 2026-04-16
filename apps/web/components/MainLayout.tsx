@@ -19,9 +19,10 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   
-  // Check if we're on a dashboard route or auth route
+  // Check if we're on a dashboard route, auth route, or playground (full-screen)
   const isDashboardRoute = pathname?.startsWith('/dashboard');
   const isAuthRoute = pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password';
+  const isFullScreenRoute = pathname === '/playground';
 
   const menuItems = [
     { label: 'Playground', href: '/playground', icon: Code2 },
@@ -51,7 +52,7 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased selection:bg-primary/30" suppressHydrationWarning>
-        {!isDashboardRoute && !isAuthRoute && <Header onMenuClick={() => setSidebarOpen(true)} user={user} />}
+        {!isDashboardRoute && !isAuthRoute && !isFullScreenRoute && <Header onMenuClick={() => setSidebarOpen(true)} user={user} />}
         
         <AnimatePresence>
           {sidebarOpen && (
@@ -187,7 +188,7 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
           )}
         </AnimatePresence>
 
-        <div className={`flex ${isDashboardRoute || isAuthRoute ? '' : 'pt-20'}`}>
+        <div className={`flex ${isDashboardRoute || isAuthRoute || isFullScreenRoute ? '' : 'pt-20'}`}>
             <main className="flex-1 w-full min-w-0">
                 {children}
             </main>

@@ -1,16 +1,17 @@
 "use client";
 
-import { motion, useMotionValue, useTransform, useMotionTemplate, AnimatePresence } from "framer-motion";
-import { Sparkles, Plus, Settings, MessageSquare, Send, Loader2, X, ChevronDown, Check, User, Bot, Copy, ThumbsUp, ThumbsDown, RotateCcw, Terminal, Zap, Activity } from "lucide-react";
+import { motion, useMotionValue, useMotionTemplate, AnimatePresence } from "framer-motion";
+import { Sparkles, Plus, MessageSquare, Send, Loader2, X, Check, Bot, Copy, ThumbsUp, ThumbsDown, RotateCcw, PanelLeftClose, PanelLeftOpen, Trash2, Edit3, Search } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import openRouterModels from "../models/openrouter-models-2026.json";
 import { getProviderLogo } from "@/lib/provider-logos";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
-  timestamp: Date;
+  timestamp: number;
   modelId?: string;
 }
 
@@ -21,6 +22,24 @@ interface ChatSession {
   isTyping: boolean;
 }
 
+interface HistoryChat {
+  id: string;
+  title: string;
+  sharedMessages: Message[];
+  sessions: ChatSession[];
+  selectedModels: any[];
+  updatedAt: number;
+}
+
+const HISTORY_KEY = "yapapa.playground.history.v1";
+const ACTIVE_KEY = "yapapa.playground.activeChatId.v1";
+
+function deriveTitle(messages: Message[]) {
+  const first = messages.find((m) => m.role === "user");
+  const raw = first?.content || "New Chat";
+  return raw.length > 40 ? `${raw.slice(0, 40)}…` : raw;
+}
+
 export default function PlaygroundPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [selectedModels, setSelectedModels] = useState<any[]>([]);
@@ -29,11 +48,54 @@ export default function PlaygroundPage() {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sharedMessages, setSharedMessages] = useState<Message[]>([]);
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [chatHistory, setChatHistory] = useState<HistoryChat[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
+
+  const spotlightBackground = useMotionTemplate`
+    radial-gradient(
+      800px circle at ${mouseX}px ${mouseY}px,
+      rgba(59,130,246,0.12),
+      transparent 60%
+    )
+  `;
+
+  useEffect(() => {
+    setIsMounted(true);
+    const savedHistory = localStorage.getItem(HISTORY_KEY);
+    const savedActive = localStorage.getItem(ACTIVE_KEY);
+    if (savedHistory) {
+      try {
+        const parsed = JSON.parse(savedHistory) as HistoryChat[];
+        setChatHistory(parsed);
+        if (savedActive && parsed.some((c) => c.id === savedActive)) {
+          setActiveChatId(savedActive);
+          const chat = parsed.find((c) => c.id === savedActive)!;
+          setSharedMessages(chat.sharedMessages);
+          setSessions(chat.sessions.map((s) => ({ ...s, isTyping: false })));
+          setSelectedModels(chat.selectedModels);
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(chatHistory));
+  }, [chatHistory, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem(ACTIVE_KEY, activeChatId || "");
+  }, [activeChatId, isMounted]);
 
   useEffect(() => {
     function handleMouseMove({ clientX, clientY }: { clientX: number, clientY: number }) {
@@ -59,6 +121,59 @@ export default function PlaygroundPage() {
     model.id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const saveCurrentChat = () => {
+    if (sharedMessages.length === 0) return;
+    const title = deriveTitle(sharedMessages);
+    const chat: HistoryChat = {
+      id: activeChatId || `chat_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
+      title,
+      sharedMessages,
+      sessions: sessions.map((s) => ({ ...s, isTyping: false })),
+      selectedModels,
+      updatedAt: Date.now(),
+    };
+    setChatHistory((prev) => {
+      const filtered = prev.filter((c) => c.id !== chat.id);
+      return [chat, ...filtered].slice(0, 50);
+    });
+    return chat.id;
+  };
+
+  const handleNewChat = () => {
+    if (sharedMessages.length > 0) {
+      saveCurrentChat();
+    }
+    setSharedMessages([]);
+    setSessions([]);
+    setSelectedModels([]);
+    const newId = `chat_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+    setActiveChatId(newId);
+    inputRef.current?.focus();
+  };
+
+  const handleLoadChat = (chat: HistoryChat) => {
+    if (chat.id === activeChatId) return;
+    if (sharedMessages.length > 0) {
+      saveCurrentChat();
+    }
+    setActiveChatId(chat.id);
+    setSharedMessages(chat.sharedMessages);
+    setSessions(chat.sessions.map((s) => ({ ...s, isTyping: false })));
+    setSelectedModels(chat.selectedModels);
+    inputRef.current?.focus();
+  };
+
+  const handleDeleteChat = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setChatHistory((prev) => prev.filter((c) => c.id !== id));
+    if (activeChatId === id) {
+      setActiveChatId(null);
+      setSharedMessages([]);
+      setSessions([]);
+      setSelectedModels([]);
+    }
+  };
+
   const addModel = (model: any) => {
     if (selectedModels.length >= 4) {
       alert("Maximum 4 models can be compared at once");
@@ -78,6 +193,9 @@ export default function PlaygroundPage() {
   };
 
   const resetChat = () => {
+    if (sharedMessages.length > 0) {
+      saveCurrentChat();
+    }
     setSharedMessages([]);
     setSessions(sessions.map(s => ({ ...s, messages: [], isTyping: false })));
   };
@@ -88,24 +206,22 @@ export default function PlaygroundPage() {
     const userMessage: Message = {
       role: "user",
       content: inputMessage,
-      timestamp: new Date(),
+      timestamp: Date.now(),
     };
 
     setSharedMessages([...sharedMessages, userMessage]);
     setInputMessage("");
     setIsLoading(true);
 
-    // Set all sessions to typing
     setSessions(sessions.map(s => ({ ...s, isTyping: true })));
 
-    // Simulate API calls with different delays for each model
     selectedModels.forEach((model, index) => {
       const delay = 800 + (index * 300) + Math.random() * 500;
       setTimeout(() => {
         const assistantMessage: Message = {
           role: "assistant",
           content: `This is a simulated response from ${model.name}. In production, this would connect to the actual OpenRouter API.\n\nThe model would process your prompt: "${userMessage.content}" and return a real response based on its capabilities.`,
-          timestamp: new Date(),
+          timestamp: Date.now(),
           modelId: model.id,
         };
 
@@ -117,7 +233,6 @@ export default function PlaygroundPage() {
           )
         );
 
-        // Check if all models finished
         setSessions(prevSessions => {
           const allFinished = prevSessions.every(s => !s.isTyping);
           if (allFinished) {
@@ -129,495 +244,362 @@ export default function PlaygroundPage() {
     });
   };
 
+  if (!isMounted) return null;
+
   return (
-    <div className="min-h-screen bg-[#050505] text-white relative overflow-hidden">
-      {/* Cyberpunk Background */}
+    <div className="h-screen bg-[#020202] text-white relative overflow-hidden flex">
+      {/* Enhanced Background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
-        
-        {/* Dynamic Spotlight */}
-        <motion.div 
-          className="absolute inset-0 opacity-20"
-          style={{
-            background: useMotionTemplate`
-              radial-gradient(
-                600px circle at ${mouseX}px ${mouseY}px,
-                rgba(59,130,246,0.08),
-                transparent 80%
-              )
-            `
-          }}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1a1a1a_1px,transparent_1px),linear-gradient(to_bottom,#1a1a1a_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_60%,transparent_100%)]" />
+        <motion.div
+          className="absolute inset-0 opacity-30"
+          style={{ background: spotlightBackground }}
         />
-        
-        {/* Vignette */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000_100%)]" />
-        
-        {/* Corner Brackets */}
-        <div className="absolute top-10 left-10 w-16 h-16 border-l-2 border-t-2 border-white/10 rounded-tl-2xl" />
-        <div className="absolute top-10 right-10 w-16 h-16 border-r-2 border-t-2 border-white/10 rounded-tr-2xl" />
-        <div className="absolute bottom-10 left-10 w-16 h-16 border-l-2 border-b-2 border-white/10 rounded-bl-2xl" />
-        <div className="absolute bottom-10 right-10 w-16 h-16 border-r-2 border-b-2 border-white/10 rounded-br-2xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#020202_80%)]" />
       </div>
 
-      <div className="relative z-10 h-screen flex flex-col">
-        {/* Glass Header */}
-        <div className="border-b border-white/10 bg-[#0A0A0A]/80 backdrop-blur-xl">
-          <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-white/10 border border-white/20">
-                    <Terminal className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-lg font-bold tracking-tight">AI Playground</h1>
-                    <p className="text-[10px] font-mono uppercase tracking-widest text-white/40">Compare Models</p>
-                  </div>
+      {/* Sidebar */}
+      <AnimatePresence initial={false}>
+        {showSidebar && (
+          <motion.aside
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 288, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+            className="relative z-20 flex flex-col border-r border-white/10 bg-[#0A0A0A]/80 backdrop-blur-2xl overflow-hidden shrink-0"
+          >
+            <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
+              <Link href="/" className="flex items-center gap-3">
+                <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-white/10">
+                  <Image src="/nervous-cat.jpg" alt="Yapapa" fill className="object-cover" unoptimized />
                 </div>
-                {selectedModels.length > 0 && (
-                  <>
-                    <div className="h-8 w-px bg-white/10" />
-                    <div className="flex items-center gap-2">
-                      {selectedModels.map((model) => (
-                        <motion.div
-                          key={model.id}
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 text-xs group hover:bg-white/10 hover:border-white/20 transition-all"
-                        >
-                          {model.logo && (
-                            <Image src={model.logo} alt="" width={16} height={16} unoptimized />
-                          )}
-                          <span className="text-gray-300 font-medium">{model.name.split(':')[0]}</span>
-                          <button
-                            onClick={() => removeModel(model.id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-white/10"
-                          >
-                            <X className="w-3 h-3 text-gray-500 hover:text-white" />
-                          </button>
-                        </motion.div>
-                      ))}
+                <div>
+                  <span className="font-bold text-sm">Yapapa</span>
+                  <span className="text-[9px] text-white/40 block">AI Playground</span>
+                </div>
+              </Link>
+              <button
+                onClick={() => setShowSidebar(false)}
+                className="p-2 rounded-lg hover:bg-white/10"
+              >
+                <PanelLeftClose className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="px-3 py-3">
+              <button
+                onClick={handleNewChat}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600/20 to-violet-600/20 hover:from-blue-600/30 hover:to-violet-600/30 border border-blue-500/20 text-sm font-semibold"
+              >
+                <Edit3 className="w-4 h-4" />
+                New Chat
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-3 pb-3">
+              <div className="space-y-1">
+                {chatHistory.map((chat) => {
+                  const isActive = chat.id === activeChatId;
+                  return (
+                    <div
+                      key={chat.id}
+                      onClick={() => handleLoadChat(chat)}
+                      className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all border ${
+                        isActive ? "bg-white/10 border-white/10" : "bg-transparent border-transparent hover:bg-white/5"
+                      }`}
+                    >
+                      <MessageSquare className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-gray-500"}`} />
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-xs truncate ${isActive ? "text-white font-medium" : "text-gray-300"}`}>
+                          {chat.title}
+                        </div>
+                        <div className="text-[10px] text-gray-500 truncate">
+                          {new Date(chat.updatedAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => handleDeleteChat(chat.id, e)}
+                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-red-500/10 text-gray-500 hover:text-red-400"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
-                  </>
+                  );
+                })}
+                {chatHistory.length === 0 && (
+                  <div className="text-center py-8 text-gray-500 text-xs">
+                    <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                    No chats yet
+                  </div>
                 )}
               </div>
-              <div className="flex items-center gap-2">
-                {sharedMessages.length > 0 && (
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={resetChat}
-                    className="p-2 hover:bg-white/5 transition-all border border-white/10 hover:border-white/20"
-                    title="Reset chat"
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+
+      {/* Toggle button */}
+      <AnimatePresence>
+        {!showSidebar && (
+          <motion.button
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            onClick={() => setShowSidebar(true)}
+            className="absolute top-4 left-4 z-30 p-2.5 rounded-xl bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/10"
+          >
+            <PanelLeftOpen className="w-4 h-4" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* Main Content */}
+      <div className="relative z-10 flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <div className="relative border-b border-white/10 bg-[#050505]/90 backdrop-blur-2xl">
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5">
+            <div className="flex items-center justify-between gap-4">
+              {/* Left: Logo + Title */}
+              <div className={`flex items-center gap-4 ${!showSidebar ? 'ml-14 md:ml-0' : ''}`}>
+                <div className="flex items-center gap-3">
+                  <motion.div
+                    whileHover={{ scale: 1.05, rotate: 1 }}
+                    className="relative w-10 h-10 rounded-xl overflow-hidden border border-white/10 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
                   >
-                    <RotateCcw className="w-4 h-4 text-gray-400 hover:text-white" />
-                  </motion.button>
+                    <Image src="/nervous-cat.jpg" alt="Yapapa" fill className="object-cover" unoptimized />
+                    <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-xl" />
+                  </motion.div>
+                  <div className="flex flex-col">
+                    <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-transparent">
+                      AI Playground
+                    </h1>
+                    <div className="flex items-center gap-1.5">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                      </span>
+                      <span className="text-[10px] font-medium uppercase tracking-wide text-white/50">Compare Models</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Model Pills + Actions */}
+              <div className="flex items-center gap-2 sm:gap-3">
+                {selectedModels.length > 0 && (
+                  <>
+                    <div className="hidden sm:flex items-center gap-2 max-w-md overflow-hidden">
+                      <AnimatePresence mode="popLayout">
+                        {selectedModels.map((model) => (
+                          <motion.div
+                            key={model.id}
+                            layout
+                            initial={{ opacity: 0, scale: 0.85, y: -8 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.85, y: -8 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                            className="group flex items-center gap-2 pl-2 pr-1.5 py-1 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 rounded-full transition-colors"
+                          >
+                            {model.logo && (
+                              <div className="relative w-4 h-4 rounded-full overflow-hidden bg-white/5">
+                                <Image src={model.logo} alt="" fill className="object-cover" unoptimized />
+                              </div>
+                            )}
+                            <span className="text-xs font-medium text-white/90 truncate max-w-[100px]">
+                              {model.name.split(':')[0]}
+                            </span>
+                            <button
+                              onClick={() => removeModel(model.id)}
+                              className="p-0.5 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+                              title="Remove model"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Mobile: compact model count badge */}
+                    <div className="sm:hidden flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs font-medium text-white/80">
+                      <span className="text-emerald-400">●</span>
+                      {selectedModels.length}
+                    </div>
+
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={resetChat}
+                      className="p-2 text-white/50 hover:text-white hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/15 rounded-xl transition-colors"
+                      title="Reset chat"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                    </motion.button>
+                  </>
                 )}
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setShowModelSelector(true)}
-                  className="relative group/btn px-4 py-2 font-mono text-sm font-bold tracking-wider overflow-hidden text-white flex items-center gap-2"
-                  title="Add model"
+                  disabled={selectedModels.length >= 4}
+                  className="relative px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl font-semibold text-sm flex items-center gap-2 shadow-[0_0_20px_rgba(59,130,246,0.2)] hover:shadow-[0_0_28px_rgba(59,130,246,0.35)] transition-all overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-violet-600 group-hover/btn:from-blue-600 group-hover/btn:to-violet-700 transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.3)] group-hover/btn:shadow-[0_0_30px_rgba(59,130,246,0.5)]" />
-                  <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-20 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 ease-in-out" />
-                  <div className="relative z-10 flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline">Add Model</span>
-                  </div>
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-700" />
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add Model</span>
+                  <span className="sm:hidden">Add</span>
+                  {selectedModels.length > 0 && (
+                    <span className="ml-0.5 text-[10px] font-bold opacity-80">
+                      {selectedModels.length}/4
+                    </span>
+                  )}
                 </motion.button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Main Chat Area */}
-        <div className="flex-1 overflow-hidden">
+        {/* Chat Area */}
+        <div className="flex-1 overflow-y-auto">
           {sessions.length === 0 ? (
             <div className="h-full flex items-center justify-center">
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center max-w-3xl px-6 space-y-8"
-              >
-                {/* Badge */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="group inline-flex items-center gap-3 px-3 py-1.5 rounded bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all cursor-default hover:border-white/30"
-                >
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-blue-500/20 text-blue-400 text-[10px] font-mono font-bold">
-                    <Sparkles className="w-3 h-3" />
-                    COMPARE
-                  </div>
-                  <span className="text-xs font-mono text-gray-400 tracking-wide group-hover:text-white transition-colors">
-                    Side-by-side model evaluation
-                  </span>
-                </motion.div>
-
-                {/* Headline */}
-                <div className="space-y-4">
-                  <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tighter leading-[0.9] text-white">
-                    Compare AI <br />
-                    <span className="relative inline-block">
-                      <span className="relative text-white">Models</span>
-                      <div className="absolute -inset-2 bg-white/5 blur-xl -z-10" />
-                    </span>
-                  </h1>
-                  <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto font-light leading-relaxed">
-                    Select up to <span className="text-white font-medium">4 models</span> and compare their responses 
-                    <span className="text-white font-medium"> side-by-side</span> in 
-                    <span className="text-white font-medium"> real-time</span>
-                  </p>
-                </div>
-
-                {/* CTA Button - Cyber Style */}
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+              <div className="text-center">
+                <button
                   onClick={() => setShowModelSelector(true)}
-                  className="relative group/btn px-8 py-4 font-mono text-sm font-bold tracking-wider overflow-hidden text-white"
+                  className="px-8 py-4 bg-gradient-to-r from-blue-500 to-violet-600 rounded-xl font-bold"
                 >
-                  {/* Background & Borders */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-violet-600 group-hover/btn:from-blue-600 group-hover/btn:to-violet-700 transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.3)] group-hover/btn:shadow-[0_0_30px_rgba(59,130,246,0.5)]" />
-                  
-                  {/* Shine Effect */}
-                  <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-20 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 ease-in-out" />
-
-                  {/* Content */}
-                  <div className="relative z-10 flex items-center justify-center gap-2">
-                    <Zap className="w-4 h-4" />
-                    Select Models
-                  </div>
-                </motion.button>
-
-                {/* Stats */}
-                <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-6 text-gray-400 text-sm border-t border-white/5">
-                  <span className="uppercase tracking-widest text-[10px] font-mono opacity-50">AVAILABLE</span>
-                  <div className="flex gap-8 items-center">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-white">{allModels.length}+</div>
-                      <div className="text-[10px] font-mono uppercase tracking-widest text-white/40 mt-1">Models</div>
-                    </div>
-                    <div className="h-8 w-px bg-white/10" />
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-white">4</div>
-                      <div className="text-[10px] font-mono uppercase tracking-widest text-white/40 mt-1">Max Compare</div>
-                    </div>
-                    <div className="h-8 w-px bg-white/10" />
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <Activity className="w-5 h-5 text-white" />
-                        <div className="text-2xl font-bold text-white">Live</div>
-                      </div>
-                      <div className="text-[10px] font-mono uppercase tracking-widest text-white/40 mt-1">Real-Time</div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+                  Select Models to Start
+                </button>
+              </div>
             </div>
           ) : (
-            <div className="h-full flex flex-col">
-              {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto">
-                <div className="max-w-7xl mx-auto px-6 py-8">
-                  <div className="space-y-8">
-                    {sharedMessages.map((msg, msgIndex) => (
-                      <div key={msgIndex} className="space-y-6">
-                        {/* User Message */}
-                        <motion.div 
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="flex items-start gap-4"
-                        >
-                          <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0 mt-1">
-                            <User className="w-5 h-5 text-white/70" />
+            <div className="max-w-7xl mx-auto px-6 py-6">
+              {sharedMessages.map((msg, idx) => (
+                <div key={idx} className="mb-8">
+                  <div className="flex justify-end mb-4">
+                    <div className="px-4 py-2 bg-blue-600 rounded-lg max-w-2xl">
+                      {msg.content}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {sessions.map((session) => {
+                      const response = session.messages.find((m) => m.role === "assistant");
+                      return (
+                        <div key={session.id} className="border border-white/10 bg-[#0A0A0A]/90 p-4 rounded-xl">
+                          <div className="flex items-center gap-2 mb-3">
+                            {session.model.logo && <Image src={session.model.logo} alt="" width={20} height={20} unoptimized />}
+                            <span className="text-sm font-semibold">{session.model.name}</span>
                           </div>
-                          <div className="flex-1 pt-1">
-                            <div className="text-[10px] font-mono uppercase tracking-widest text-white/40 mb-2">You</div>
-                            <div className="text-sm text-white leading-relaxed whitespace-pre-wrap">
-                              {msg.content}
+                          {session.isTyping ? (
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span className="text-sm">Generating...</span>
                             </div>
-                          </div>
-                        </motion.div>
-
-                        {/* Model Responses Grid */}
-                        <div className={`grid gap-4 ${sessions.length === 1 ? 'grid-cols-1' : sessions.length === 2 ? 'grid-cols-1 lg:grid-cols-2' : sessions.length === 3 ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1 lg:grid-cols-2'}`}>
-                          {sessions.map((session) => {
-                            const response = session.messages.find(m => m.role === 'assistant' && sharedMessages.indexOf(msg) === msgIndex);
-                            return (
-                              <motion.div 
-                                key={session.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="relative border border-white/10 bg-[#0A0A0A]/90 backdrop-blur-xl p-5 hover:border-white/20 transition-all group/response"
-                              >
-                                {/* Corner Accents */}
-                                <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/20" />
-                                <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/20" />
-
-                                {/* Model Header */}
-                                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-white/5">
-                                  <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                                    {session.model.logo ? (
-                                      <Image src={session.model.logo} alt="" width={16} height={16} unoptimized />
-                                    ) : (
-                                      <Bot className="w-4 h-4 text-gray-500" />
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="text-xs font-medium text-white truncate">{session.model.name}</div>
-                                    <div className="text-[10px] font-mono text-white/40 truncate">{session.model.id}</div>
-                                  </div>
-                                  {session.isTyping && (
-                                    <div className="flex items-center gap-1.5">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" />
-                                      <span className="text-[10px] font-mono text-white/60">Processing</span>
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Response Content */}
-                                {session.isTyping ? (
-                                  <div className="flex items-center gap-3 text-gray-500 py-4">
-                                    <Loader2 className="w-4 h-4 animate-spin text-white/70" />
-                                    <span className="text-sm font-mono text-white/60">Generating response...</span>
-                                  </div>
-                                ) : response ? (
-                                  <div className="space-y-4">
-                                    <div className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">
-                                      {response.content}
-                                    </div>
-                                    <div className="flex items-center gap-1 pt-2 border-t border-white/5">
-                                      <button
-                                        className="p-2 hover:bg-white/5 transition-all border border-white/10 hover:border-white/20"
-                                        title="Copy"
-                                        onClick={() => navigator.clipboard.writeText(response.content)}
-                                      >
-                                        <Copy className="w-3.5 h-3.5 text-gray-500 hover:text-white" />
-                                      </button>
-                                      <button className="p-2 hover:bg-white/5 transition-all border border-white/10 hover:border-white/20" title="Good response">
-                                        <ThumbsUp className="w-3.5 h-3.5 text-gray-500 hover:text-white" />
-                                      </button>
-                                      <button className="p-2 hover:bg-white/5 transition-all border border-white/10 hover:border-white/20" title="Bad response">
-                                        <ThumbsDown className="w-3.5 h-3.5 text-gray-500 hover:text-white" />
-                                      </button>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="text-sm text-gray-600 py-4 font-mono">Waiting for response...</div>
-                                )}
-                              </motion.div>
-                            );
-                          })}
+                          ) : response ? (
+                            <div className="text-sm text-gray-300">{response.content}</div>
+                          ) : null}
                         </div>
-                      </div>
-                    ))}
-                    <div ref={messagesEndRef} />
+                      );
+                    })}
                   </div>
                 </div>
-              </div>
-
-              {/* Input Area - Cyberpunk Glass Style */}
-              <div className="border-t border-white/10 bg-[#0A0A0A]/80 backdrop-blur-xl">
-                <div className="max-w-7xl mx-auto px-6 py-5">
-                  <div className="flex items-end gap-4">
-                    <div className="flex-1 relative">
-                      {/* Glass Input Container */}
-                      <div className="relative border border-white/10 bg-black/40 backdrop-blur-md overflow-hidden hover:border-white/20 transition-all focus-within:border-white/30">
-                        <textarea
-                          ref={inputRef}
-                          value={inputMessage}
-                          onChange={(e) => setInputMessage(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                              e.preventDefault();
-                              sendMessage();
-                            }
-                          }}
-                          placeholder="Enter your prompt..."
-                          className="w-full bg-transparent px-5 py-4 text-sm resize-none outline-none placeholder:text-gray-600 text-white"
-                          rows={1}
-                          style={{ minHeight: '56px', maxHeight: '200px' }}
-                        />
-                      </div>
-                      {/* Character Counter */}
-                      <div className="absolute -bottom-5 right-0 text-[10px] font-mono text-white/30">
-                        {inputMessage.length} / 4000
-                      </div>
-                    </div>
-                    
-                    {/* Send Button - Cyber Style */}
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={sendMessage}
-                      disabled={!inputMessage.trim() || isLoading}
-                      className="relative group/btn px-6 py-4 font-mono text-sm font-bold tracking-wider overflow-hidden text-white disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-violet-600 group-hover/btn:from-blue-600 group-hover/btn:to-violet-700 transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.3)] group-hover/btn:shadow-[0_0_30px_rgba(59,130,246,0.5)]" />
-                      <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-20 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
-                      <div className="relative z-10 flex items-center justify-center gap-2">
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            <span className="hidden sm:inline">Processing</span>
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-5 h-5" />
-                            <span className="hidden sm:inline">Send</span>
-                          </>
-                        )}
-                      </div>
-                    </motion.button>
-                  </div>
-                  
-                  {/* Status Bar */}
-                  <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/5">
-                    <div className="flex items-center gap-4 text-[10px] font-mono text-white/40">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`} />
-                        <span>{isLoading ? 'Processing' : 'Ready'}</span>
-                      </div>
-                      <div className="h-3 w-px bg-white/10" />
-                      <span>{sessions.length} Model{sessions.length !== 1 ? 's' : ''} Active</span>
-                    </div>
-                    <div className="text-[10px] font-mono text-white/40">
-                      Press Enter to send • Shift+Enter for new line
-                    </div>
-                  </div>
-                </div>
-              </div>
+              ))}
+              <div ref={messagesEndRef} />
             </div>
           )}
         </div>
+
+        {/* Input */}
+        {sessions.length > 0 && (
+          <div className="border-t border-white/10 bg-[#0A0A0A]/80 backdrop-blur-xl p-4">
+            <div className="max-w-7xl mx-auto flex gap-3">
+              <textarea
+                ref={inputRef}
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+                placeholder="Enter your prompt..."
+                className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 resize-none outline-none"
+                rows={1}
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!inputMessage.trim() || isLoading}
+                className="px-5 py-3 bg-gradient-to-r from-blue-500 to-violet-600 rounded-xl disabled:opacity-30"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Model Selector Modal - Cyberpunk Glass Style */}
+      {/* Model Selector Modal */}
       <AnimatePresence>
         {showModelSelector && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+            onClick={() => setShowModelSelector(false)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="w-full max-w-3xl rounded-2xl bg-[#0A0A0A]/90 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/50 ring-1 ring-white/5 overflow-hidden max-h-[80vh] flex flex-col"
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-4xl rounded-2xl bg-[#0A0A0A]/95 border border-white/10 overflow-hidden max-h-[85vh] flex flex-col"
             >
-              {/* Header */}
-              <div className="p-6 border-b border-white/10 bg-black/40">
+              <div className="p-6 border-b border-white/10">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-white/10 border border-white/20">
-                      <Sparkles className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-bold tracking-tight">Select AI Model</h2>
-                      <p className="text-[10px] font-mono uppercase tracking-widest text-white/40">
-                        {filteredModels.length} Available • Max 4
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowModelSelector(false)}
-                    className="p-2 hover:bg-white/10 rounded-lg transition-all border border-white/10 hover:border-white/20"
-                  >
+                  <h2 className="text-lg font-bold">Select AI Model</h2>
+                  <button onClick={() => setShowModelSelector(false)} className="p-2 hover:bg-white/10 rounded-xl">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                
-                {/* Search Bar */}
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                    <MessageSquare className="w-4 h-4 text-gray-500" />
-                  </div>
+                  <Search className="absolute left-4 top-3 w-4 h-4 text-gray-500" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search by name or provider..."
-                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm outline-none focus:border-white/30 focus:bg-black/40 transition-all placeholder:text-gray-600"
-                    autoFocus
+                    placeholder="Search models..."
+                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm outline-none"
                   />
                 </div>
               </div>
-              
-              {/* Model List */}
+
               <div className="flex-1 overflow-y-auto p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {filteredModels.slice(0, 100).map((model) => {
+                  {filteredModels.slice(0, 100).map((model: any) => {
                     const isSelected = selectedModels.find(m => m.id === model.id);
                     return (
-                      <motion.button
+                      <button
                         key={model.id}
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
                         onClick={() => addModel(model)}
                         disabled={!!isSelected}
-                        className={`relative group/card flex items-center gap-4 p-4 transition-all text-left ${
-                          isSelected
-                            ? 'bg-white/10 border border-white/30 cursor-not-allowed'
-                            : 'hover:bg-white/5 border border-white/10 hover:border-white/20'
+                        className={`flex items-center gap-4 p-4 text-left rounded-xl border transition-all ${
+                          isSelected ? 'bg-white/10 border-white/30 cursor-not-allowed' : 'bg-white/5 border-white/10 hover:bg-white/10'
                         }`}
                       >
-                        {/* Logo */}
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-all ${
-                          isSelected 
-                            ? 'bg-white/10 border border-white/30' 
-                            : 'bg-white/5 border border-white/10 group-hover/card:border-white/20'
-                        }`}>
-                          {model.logo ? (
-                            <Image src={model.logo} alt="" width={24} height={24} unoptimized />
-                          ) : (
-                            <Bot className="w-5 h-5 text-gray-500" />
-                          )}
+                        <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                          {model.logo ? <Image src={model.logo} alt="" width={24} height={24} unoptimized /> : <Bot className="w-5 h-5" />}
                         </div>
-                        
-                        {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate text-white">{model.name}</p>
-                          <p className="text-xs text-gray-500 truncate font-mono">{model.id}</p>
+                          <p className="text-sm font-medium truncate">{model.name}</p>
+                          <p className="text-xs text-gray-500 truncate">{model.id}</p>
                         </div>
-                        
-                        {/* Metadata */}
-                        <div className="flex items-center gap-4 shrink-0">
-                          {model.context_length && (
-                            <div className="text-center">
-                              <div className="text-xs font-bold text-white">
-                                {(model.context_length / 1000).toFixed(0)}K
-                              </div>
-                              <div className="text-[9px] font-mono text-white/40">Context</div>
-                            </div>
-                          )}
-                          {isSelected && (
-                            <div className="w-8 h-8 rounded-lg bg-white/20 border border-white/40 flex items-center justify-center">
-                              <Check className="w-4 h-4 text-white" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Corner Accents */}
-                        <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/10 opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                        <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/10 opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                      </motion.button>
+                        {isSelected && <Check className="w-5 h-5 text-white" />}
+                      </button>
                     );
                   })}
-                </div>
-              </div>
-              
-              {/* Footer */}
-              <div className="p-4 border-t border-white/10 bg-black/40">
-                <div className="flex items-center justify-between text-[10px] font-mono text-white/40">
-                  <span>Scroll for more models</span>
-                  <span>{selectedModels.length} / 4 Selected</span>
                 </div>
               </div>
             </motion.div>
