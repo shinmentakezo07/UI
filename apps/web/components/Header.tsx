@@ -118,6 +118,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
             {[
                 { label: 'Models', path: '/models' },
                 { label: 'Playground', path: '/playground' },
+                { label: 'Docs', path: '/docs' },
                 { label: 'Pricing', path: '/pricing' }
             ].map((item) => (
                 <Link

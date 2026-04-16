@@ -25,6 +25,7 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
 
   const menuItems = [
     { label: 'Playground', href: '/playground', icon: Code2 },
+    { label: 'Docs', href: '/docs', icon: BookOpen },
     { label: 'Dashboard', href: '/dashboard', icon: Trophy, authRequired: true },
   ];
 
