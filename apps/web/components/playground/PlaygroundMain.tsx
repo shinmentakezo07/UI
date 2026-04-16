@@ -530,7 +530,7 @@ export default function PlaygroundMain() {
       
       <div 
         ref={containerRef}
-        className="flex flex-col md:flex-row h-[calc(100vh-240px)] md:h-[calc(100vh-220px)] bg-[#0A0A0A] overflow-hidden rounded-2xl border border-white/10 relative shadow-2xl"
+        className="flex flex-col md:flex-row h-[calc(100vh-240px)] md:h-[calc(100vh-220px)] bg-[#0e0e0e] overflow-hidden rounded-2xl border border-white/10 relative shadow-2xl"
       >
       {/* Language Sidebar - Dark theme */}
       <div className="w-full md:w-20 bg-[#0A0A0A] border-b md:border-b-0 md:border-r border-white/10 flex flex-row md:flex-col items-center py-4 md:py-5 gap-3 z-10 overflow-x-auto px-3 md:px-0">
@@ -540,7 +540,7 @@ export default function PlaygroundMain() {
             onClick={() => handleLangChange(key as LanguageKey)}
             className={`relative p-3 rounded-xl transition-all shrink-0 ${
               activeLang === key 
-                ? "bg-primary text-white shadow-lg shadow-primary/20" 
+                ? "bg-gradient-to-br from-blue-500 to-violet-600 text-white shadow-lg shadow-blue-500/30" 
                 : "text-gray-500 hover:text-white hover:bg-white/10"
             }`}
             title={lang.name}
@@ -576,7 +576,7 @@ export default function PlaygroundMain() {
               <button
                 onClick={() => setMobileTab("editor")}
                 className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                  mobileTab === "editor" ? "bg-primary text-white shadow-sm" : "text-gray-400 hover:text-white"
+                  mobileTab === "editor" ? "bg-gradient-to-r from-blue-500 to-violet-600 text-white shadow-sm" : "text-gray-400 hover:text-white"
                 }`}
               >
                 Code
@@ -584,7 +584,7 @@ export default function PlaygroundMain() {
               <button
                 onClick={() => setMobileTab("output")}
                 className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                  mobileTab === "output" ? "bg-primary text-white shadow-sm" : "text-gray-400 hover:text-white"
+                  mobileTab === "output" ? "bg-gradient-to-r from-blue-500 to-violet-600 text-white shadow-sm" : "text-gray-400 hover:text-white"
                 }`}
               >
                 Output
@@ -665,10 +665,10 @@ export default function PlaygroundMain() {
             <button 
               onClick={runCode}
               disabled={isRunning}
-              className="relative group/btn flex items-center gap-2 px-6 py-2 text-black text-sm font-bold font-mono tracking-wider rounded-lg transition-all disabled:opacity-50 overflow-hidden uppercase"
+              className="relative group/btn flex items-center gap-2 px-6 py-2 text-white text-sm font-bold font-mono tracking-wider rounded-lg transition-all disabled:opacity-50 overflow-hidden uppercase"
             >
               {/* Background */}
-              <div className="absolute inset-0 bg-white group-hover/btn:bg-cyan-400 transition-all duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-violet-600 group-hover/btn:from-blue-600 group-hover/btn:to-violet-700 transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.3)] group-hover/btn:shadow-[0_0_30px_rgba(59,130,246,0.5)]" />
               
               {/* Shine Effect */}
               <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-20 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 ease-in-out" />

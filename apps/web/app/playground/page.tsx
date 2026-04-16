@@ -218,17 +218,15 @@ export default function PlaygroundPage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowModelSelector(true)}
-                  className="relative group/btn px-4 py-2 font-mono text-sm font-bold tracking-wider overflow-hidden text-black flex items-center gap-2"
+                  className="relative group/btn px-4 py-2 font-mono text-sm font-bold tracking-wider overflow-hidden text-white flex items-center gap-2"
                   title="Add model"
                 >
-                  <div className="absolute inset-0 bg-white group-hover/btn:bg-cyan-400 transition-all duration-300" />
-                  <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-20 bg-gradient-to-r from-transparent via-black to-transparent -skew-x-12 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 ease-in-out" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-violet-600 group-hover/btn:from-blue-600 group-hover/btn:to-violet-700 transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.3)] group-hover/btn:shadow-[0_0_30px_rgba(59,130,246,0.5)]" />
+                  <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-20 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 ease-in-out" />
                   <div className="relative z-10 flex items-center gap-2">
                     <Plus className="w-4 h-4" />
                     <span className="hidden sm:inline">Add Model</span>
                   </div>
-                  <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-current opacity-50" />
-                  <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-current opacity-50" />
                 </motion.button>
               </div>
             </div>
@@ -251,7 +249,7 @@ export default function PlaygroundPage() {
                   transition={{ delay: 0.2 }}
                   className="group inline-flex items-center gap-3 px-3 py-1.5 rounded bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all cursor-default hover:border-white/30"
                 >
-                  <div className="flex items-center gap-2 px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px] font-mono font-bold">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-blue-500/20 text-blue-400 text-[10px] font-mono font-bold">
                     <Sparkles className="w-3 h-3" />
                     COMPARE
                   </div>
@@ -281,23 +279,19 @@ export default function PlaygroundPage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowModelSelector(true)}
-                  className="relative group/btn px-8 py-4 font-mono text-sm font-bold tracking-wider overflow-hidden text-black"
+                  className="relative group/btn px-8 py-4 font-mono text-sm font-bold tracking-wider overflow-hidden text-white"
                 >
                   {/* Background & Borders */}
-                  <div className="absolute inset-0 bg-white group-hover/btn:bg-cyan-400 transition-all duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-violet-600 group-hover/btn:from-blue-600 group-hover/btn:to-violet-700 transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.3)] group-hover/btn:shadow-[0_0_30px_rgba(59,130,246,0.5)]" />
                   
                   {/* Shine Effect */}
-                  <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-20 bg-gradient-to-r from-transparent via-black to-transparent -skew-x-12 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 ease-in-out" />
+                  <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-20 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 ease-in-out" />
 
                   {/* Content */}
                   <div className="relative z-10 flex items-center justify-center gap-2">
                     <Zap className="w-4 h-4" />
                     Select Models
                   </div>
-                  
-                  {/* Corner Accents */}
-                  <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-current opacity-50" />
-                  <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-current opacity-50" />
                 </motion.button>
 
                 {/* Stats */}
@@ -462,10 +456,10 @@ export default function PlaygroundPage() {
                       whileTap={{ scale: 0.95 }}
                       onClick={sendMessage}
                       disabled={!inputMessage.trim() || isLoading}
-                      className="relative group/btn px-6 py-4 font-mono text-sm font-bold tracking-wider overflow-hidden text-black disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="relative group/btn px-6 py-4 font-mono text-sm font-bold tracking-wider overflow-hidden text-white disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                      <div className="absolute inset-0 bg-white group-hover/btn:bg-cyan-400 transition-all duration-300" />
-                      <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-20 bg-gradient-to-r from-transparent via-black to-transparent -skew-x-12 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-violet-600 group-hover/btn:from-blue-600 group-hover/btn:to-violet-700 transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.3)] group-hover/btn:shadow-[0_0_30px_rgba(59,130,246,0.5)]" />
+                      <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-20 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
                       <div className="relative z-10 flex items-center justify-center gap-2">
                         {isLoading ? (
                           <>
@@ -479,9 +473,6 @@ export default function PlaygroundPage() {
                           </>
                         )}
                       </div>
-                      {/* Corner Accents */}
-                      <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-current opacity-50" />
-                      <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-current opacity-50" />
                     </motion.button>
                   </div>
                   
