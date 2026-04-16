@@ -29,7 +29,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span className="text-white font-bold text-sm">ST</span>
             </div>
             <span className="text-lg font-bold text-white group-hover:text-primary transition-colors">
-              Shinmen Takzo
+              Yapapa
             </span>
           </Link>
         </div>
@@ -110,7 +110,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
                     <span className="text-white font-bold text-sm">ST</span>
                   </div>
-                  <span className="text-lg font-bold text-white">Shinmen Takzo</span>
+                  <span className="text-lg font-bold text-white">Yapapa</span>
                 </Link>
                 <button
                   onClick={() => setSidebarOpen(false)}

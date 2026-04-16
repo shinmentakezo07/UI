@@ -756,7 +756,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
         <div className="max-w-7xl mx-auto px-4 text-center text-muted-foreground relative z-10 font-mono text-sm">
             <p className="flex items-center justify-center gap-2">
-                <span>&copy; 2026 Shinmen Takzo</span>
+                <span>&copy; 2026 Yapapa</span>
                 <span className="w-1 h-1 rounded-full bg-emerald-500"></span>
                 <span>Universal LLM Gateway</span>
             </p>

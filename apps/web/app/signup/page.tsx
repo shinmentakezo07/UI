@@ -92,7 +92,7 @@ export default function SignupPage() {
           <div className="flex items-center justify-between">
             <Link href="/" className="text-2xl font-bold tracking-tighter text-white flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-3 h-3 bg-white rounded-full animate-pulse shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
-              Shinmen Takzo
+              Yapapa
             </Link>
             <Link
               href="/"
@@ -162,7 +162,7 @@ export default function SignupPage() {
           <div className="lg:hidden mb-12 flex items-center justify-between">
             <Link href="/" className="text-2xl font-bold text-white flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-3 h-3 bg-white rounded-full animate-pulse shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
-              Shinmen Takzo
+              Yapapa
             </Link>
             <Link
               href="/"

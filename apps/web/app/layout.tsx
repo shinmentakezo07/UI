@@ -13,7 +13,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space" });
 
 export const metadata: Metadata = {
-  title: "Shinmen Takzo - Universal LLM Gateway",
+  title: "Yapapa - Universal LLM Gateway",
   description: "Access 100+ AI models through one unified API. Route to the best model for your task.",
 };
 
