@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export function CreditPackages() {
     return (
-        <section id="credits" className="w-full py-32 px-4 relative z-20 bg-[#050505] overflow-hidden">
+        <section id="credits" className="w-full py-16 px-4 relative z-20 bg-[#050505] overflow-hidden">
             {/* Subtle Background - Hero Style */}
             <div className="absolute inset-0 -z-10 overflow-hidden">
                 {/* Moving Grid */}
@@ -23,19 +23,19 @@ export function CreditPackages() {
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000_100%)]" />
             </div>
 
-            <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-24 relative">
+            <div className="max-w-6xl mx-auto">
+                <div className="text-center mb-12 relative">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
-                        className="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-violet-500/5 border border-violet-500/20 backdrop-blur-sm mb-8"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-violet-500/5 border border-violet-500/20 backdrop-blur-sm mb-4"
                     >
-                        <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-violet-500/20 text-violet-400 text-[10px] font-mono font-bold">
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-violet-500/20 text-violet-400 text-[9px] font-mono font-bold">
                             <Crown className="w-3 h-3" />
                             CREDITS
                         </div>
-                        <span className="text-xs font-mono text-gray-400 tracking-wide uppercase">
+                        <span className="text-[10px] font-mono text-gray-400 tracking-wide uppercase">
                             Add credits anytime • No expiry
                         </span>
                     </motion.div>
@@ -44,9 +44,9 @@ export function CreditPackages() {
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.9] text-white mb-8"
+                        className="text-3xl md:text-5xl font-black tracking-tighter leading-tight text-white mb-4"
                     >
-                        <span className="block mb-3">Simple</span>
+                        <span className="block mb-2">Simple</span>
                         <span className="block">
                             <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-violet-400 bg-clip-text text-transparent">
                                 Credit Packages
@@ -59,16 +59,15 @@ export function CreditPackages() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.1 }}
-                        className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto font-light leading-relaxed"
+                        className="text-base md:text-lg text-gray-400 max-w-2xl mx-auto font-light"
                     >
                         Pay only for what you use. Add credits anytime.
-                        <br className="hidden md:block" />
-                        <span className="text-white font-semibold">No subscriptions</span>, no expiry.
+                        <span className="text-white font-semibold"> No subscriptions</span>, no expiry.
                     </motion.p>
                 </div>
 
                 {/* Refined Credit Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
                     {creditPackages.map((plan, i) => (
                         <motion.div
                             key={plan.name}
@@ -81,78 +80,78 @@ export function CreditPackages() {
                                 stiffness: 100,
                                 damping: 15
                             }}
-                            whileHover={{ y: -8 }}
+                            whileHover={{ y: -4 }}
                             className={`relative flex flex-col group ${plan.popular ? 'md:scale-105' : ''}`}
                         >
                             {/* Subtle Glow */}
-                            <div className="absolute inset-0 bg-white/5 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div className="absolute inset-0 bg-white/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                             {/* Card Border */}
-                            <div className={`relative flex flex-col h-full p-[2px] rounded-3xl ${
+                            <div className={`relative flex flex-col h-full p-[1px] rounded-2xl ${
                                 plan.popular
                                 ? 'bg-gradient-to-br from-violet-500/50 to-fuchsia-500/50'
                                 : 'bg-white/10'
                             }`}>
-                                <div className="h-full bg-[#0A0A0A] rounded-[22px] p-10 flex flex-col relative overflow-hidden">
+                                <div className="h-full bg-[#0A0A0A] rounded-[15px] p-6 flex flex-col relative overflow-hidden">
                                     {/* Corner Accents */}
-                                    <div className={`absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 ${plan.popular ? 'border-violet-400/50' : 'border-white/20'} transition-colors`} />
-                                    <div className={`absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 ${plan.popular ? 'border-violet-400/50' : 'border-white/20'} transition-colors`} />
+                                    <div className={`absolute top-3 left-3 w-6 h-6 border-l border-t ${plan.popular ? 'border-violet-400/50' : 'border-white/20'} transition-colors`} />
+                                    <div className={`absolute bottom-3 right-3 w-6 h-6 border-r border-b ${plan.popular ? 'border-violet-400/50' : 'border-white/20'} transition-colors`} />
 
                                     <div className="relative z-10 flex flex-col h-full">
                                         {/* Header */}
-                                        <div className="flex items-center justify-between mb-6">
-                                            <div className={`w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center ${plan.color} group-hover:scale-105 transition-transform duration-300`}>
-                                                <plan.icon className="w-7 h-7" strokeWidth={2} />
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className={`w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center ${plan.color} group-hover:scale-105 transition-transform duration-300`}>
+                                                <plan.icon className="w-5 h-5" strokeWidth={2} />
                                             </div>
                                             {plan.popular && (
-                                                <span className="px-3 py-1.5 rounded-lg bg-violet-500/20 border border-violet-500/30 text-violet-300 text-[10px] font-mono font-bold uppercase tracking-wider">
+                                                <span className="px-2 py-1 rounded-md bg-violet-500/20 border border-violet-500/30 text-violet-300 text-[9px] font-mono font-bold uppercase tracking-wider">
                                                     Best Value
                                                 </span>
                                             )}
                                         </div>
 
                                         {/* Plan Name */}
-                                        <h3 className="text-2xl font-bold mb-3 tracking-tight text-white">
+                                        <h3 className="text-xl font-bold mb-2 tracking-tight text-white">
                                             {plan.name}
                                         </h3>
-                                        <p className="text-gray-400 text-sm leading-relaxed mb-8 min-h-[40px]">
+                                        <p className="text-gray-400 text-xs leading-relaxed mb-4 min-h-[32px]">
                                             {plan.description}
                                         </p>
 
                                         {/* Pricing */}
-                                        <div className="mb-8 pb-8 border-b border-white/10">
-                                            <div className="flex items-baseline gap-3 mb-4">
-                                                <span className="text-5xl font-black text-white tracking-tighter">
+                                        <div className="mb-4 pb-4 border-b border-white/10">
+                                            <div className="flex items-baseline gap-2 mb-2">
+                                                <span className="text-3xl font-black text-white tracking-tighter">
                                                     {plan.amount}
                                                 </span>
-                                                <span className="text-gray-500 font-mono text-sm">
+                                                <span className="text-gray-500 font-mono text-xs">
                                                     one-time
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <span className={`text-xl font-bold ${plan.popular ? 'text-violet-400' : 'text-emerald-400'}`}>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-base font-bold ${plan.popular ? 'text-violet-400' : 'text-emerald-400'}`}>
                                                     {plan.creditsDisplay}
                                                 </span>
                                                 {plan.bonus && (
-                                                    <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg font-mono text-xs font-bold border border-emerald-500/30">
+                                                    <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-md font-mono text-[10px] font-bold border border-emerald-500/30">
                                                         {plan.bonus}
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="text-gray-500 text-xs mt-3 font-mono">
+                                            <p className="text-gray-500 text-[10px] mt-2 font-mono">
                                                 <span className="text-gray-600">{"// "}</span>
                                                 Credits never expire
                                             </p>
                                         </div>
 
                                         {/* Features */}
-                                        <ul className="space-y-4 mb-10 flex-1">
+                                        <ul className="space-y-2 mb-6 flex-1">
                                             {plan.features.map((feature, fIndex) => (
                                                 <li
                                                     key={fIndex}
-                                                    className="flex items-start gap-3 text-sm text-gray-300"
+                                                    className="flex items-start gap-2 text-xs text-gray-300"
                                                 >
-                                                    <Check className={`w-4 h-4 mt-0.5 shrink-0 ${plan.popular ? 'text-violet-400' : 'text-gray-600'}`} strokeWidth={2.5} />
+                                                    <Check className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${plan.popular ? 'text-violet-400' : 'text-gray-600'}`} strokeWidth={2.5} />
                                                     <span className="leading-relaxed">
                                                         {feature}
                                                     </span>
@@ -162,7 +161,7 @@ export function CreditPackages() {
 
                                         {/* CTA Button */}
                                         <button
-                                            className={`relative w-full py-4 font-mono text-sm font-bold tracking-wider uppercase transition-all overflow-hidden group/btn rounded-xl ${
+                                            className={`relative w-full py-3 font-mono text-xs font-bold tracking-wider uppercase transition-all overflow-hidden group/btn rounded-lg ${
                                                 plan.popular ? 'text-black' : 'text-white'
                                             }`}
                                         >
@@ -178,7 +177,7 @@ export function CreditPackages() {
 
                                             <span className="relative z-10 flex items-center justify-center gap-2">
                                                 {plan.cta}
-                                                <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                                <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
                                             </span>
                                         </button>
                                     </div>
