@@ -173,17 +173,17 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                         </div>
                     </div>
 
-                        <Link href="/dashboard" className="flex items-center gap-3 pl-1 pr-2 py-1 rounded-full bg-[#00ff9d]/5 border border-[#00ff9d]/20 hover:bg-[#00ff9d]/10 transition-all cursor-pointer group">
-                            <div className="relative w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border border-[#00ff9d]/30 group-hover:border-[#00ff9d] transition-colors">
+                        <Link href="/dashboard" className="flex items-center gap-3 pl-1 pr-2 py-1 rounded-full bg-[#3b82f6]/5 border border-[#3b82f6]/20 hover:bg-[#3b82f6]/10 transition-all cursor-pointer group">
+                            <div className="relative w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border border-[#3b82f6]/30 group-hover:border-[#3b82f6] transition-colors">
                                 {/* Cyberpunk Avatar BG */}
-                                <div className="absolute inset-0 bg-[#00ff9d]/20 animate-pulse" />
+                                <div className="absolute inset-0 bg-[#3b82f6]/20 animate-pulse" />
                                 <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/50 to-purple-600/50 mix-blend-overlay" />
                                 
-                                <span className="relative z-10 text-xs font-bold text-[#00ff9d] text-shadow-neon">
+                                <span className="relative z-10 text-xs font-bold text-[#3b82f6] text-shadow-neon">
                                     {user.name ? user.name[0].toUpperCase() : "U"}
                                 </span>
                             </div>
-                            <span className="text-sm font-medium text-gray-200 max-w-[100px] truncate mr-1 group-hover:text-[#00ff9d] transition-colors">{user.name}</span>
+                            <span className="text-sm font-medium text-gray-200 max-w-[100px] truncate mr-1 group-hover:text-[#3b82f6] transition-colors">{user.name}</span>
                         </Link>
                     <Link href="/dashboard/settings" className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors" title="Settings">
                         <Settings className="h-4 w-4" />

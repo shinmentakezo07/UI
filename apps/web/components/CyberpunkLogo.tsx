@@ -15,9 +15,9 @@ export const CyberpunkLogo = () => {
   if (!isMounted) {
     return (
       <div className="group relative flex items-center gap-4 cursor-pointer select-none py-2">
-        <div className="relative w-12 h-12 flex items-center justify-center bg-black border border-[#00ff9d]/30 rounded-lg overflow-hidden">
-           <div className="absolute inset-0 bg-[linear-gradient(to_right,#00ff9d10_1px,transparent_1px),linear-gradient(to_bottom,#00ff9d10_1px,transparent_1px)] bg-[size:4px_4px]" />
-           <div className="relative z-10 text-[#00ff9d] drop-shadow-[0_0_5px_rgba(0,255,157,0.8)]">
+        <div className="relative w-12 h-12 flex items-center justify-center bg-black border border-[#3b82f6]/30 rounded-lg overflow-hidden">
+           <div className="absolute inset-0 bg-[linear-gradient(to_right,#3b82f610_1px,transparent_1px),linear-gradient(to_bottom,#3b82f610_1px,transparent_1px)] bg-[size:4px_4px]" />
+           <div className="relative z-10 text-[#3b82f6] drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]">
                 <span className="font-black text-2xl italic">P</span>
             </div>
         </div>

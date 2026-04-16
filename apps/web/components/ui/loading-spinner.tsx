@@ -22,7 +22,7 @@ export function LoadingSpinner({ size = "md", className, text }: LoadingSpinnerP
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
       >
-        <Loader2 className={cn(sizeClasses[size], "text-[#00ff9d]")} />
+        <Loader2 className={cn(sizeClasses[size], "text-[#3b82f6]")} />
       </motion.div>
       {text && (
         <p className="text-sm text-gray-400 font-mono animate-pulse">{text}</p>

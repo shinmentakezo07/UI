@@ -23,23 +23,23 @@ export default function Terminal({ onMount }: TerminalProps) {
         theme: {
           background: '#0a0a0a',
           foreground: '#e4e4e7',
-          cursor: '#a1a1aa',
-          selectionBackground: 'rgba(255, 255, 255, 0.2)',
+          cursor: '#3b82f6',
+          selectionBackground: 'rgba(59, 130, 246, 0.3)',
           black: '#18181b',
           red: '#ef4444',
           green: '#22c55e',
           yellow: '#eab308',
           blue: '#3b82f6',
-          magenta: '#a855f7',
-          cyan: '#06b6d4',
+          magenta: '#7c3aed',
+          cyan: '#3b82f6',
           white: '#f4f4f5',
           brightBlack: '#52525b',
           brightRed: '#f87171',
           brightGreen: '#4ade80',
           brightYellow: '#facc15',
           brightBlue: '#60a5fa',
-          brightMagenta: '#c084fc',
-          brightCyan: '#22d3ee',
+          brightMagenta: '#a855f7',
+          brightCyan: '#60a5fa',
           brightWhite: '#ffffff',
         },
         fontFamily: "'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace",
@@ -61,10 +61,10 @@ export default function Terminal({ onMount }: TerminalProps) {
       // Delay fit to ensure container is rendered
       setTimeout(() => fitAddon.fit(), 10);
 
-      term.writeln('\x1b[1;36m╭─────────────────────────────────────╮\x1b[0m');
-      term.writeln('\x1b[1;36m│\x1b[0m  \x1b[1;32m✓\x1b[0m Terminal Ready                \x1b[1;36m│\x1b[0m');
-      term.writeln('\x1b[1;36m│\x1b[0m  Press Run or Ctrl+Enter to execute \x1b[1;36m│\x1b[0m');
-      term.writeln('\x1b[1;36m╰─────────────────────────────────────╯\x1b[0m');
+      term.writeln('\x1b[1;34m╭─────────────────────────────────────╮\x1b[0m');
+      term.writeln('\x1b[1;34m│\x1b[0m  \x1b[1;34m✓\x1b[0m Terminal Ready                \x1b[1;34m│\x1b[0m');
+      term.writeln('\x1b[1;34m│\x1b[0m  Press Run or Ctrl+Enter to execute \x1b[1;34m│\x1b[0m');
+      term.writeln('\x1b[1;34m╰─────────────────────────────────────╯\x1b[0m');
       term.writeln('');
 
       xtermRef.current = term;

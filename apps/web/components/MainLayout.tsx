@@ -96,7 +96,7 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
                       <Link
                           href="/"
                           onClick={() => setSidebarOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-300 hover:text-[#00ff9d] hover:bg-[#00ff9d]/10 rounded-xl transition-colors border border-transparent hover:border-[#00ff9d]/20"
+                          className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-300 hover:text-[#3b82f6] hover:bg-[#3b82f6]/10 rounded-xl transition-colors border border-transparent hover:border-[#3b82f6]/20"
                       >
                           <Home className="w-5 h-5" />
                           Home
@@ -105,7 +105,7 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
                     
                     <motion.div variants={itemVariants} className="pt-4 pb-2 px-4">
                         <div className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                            <span className="w-1 h-1 rounded-full bg-[#00ff9d] shadow-[0_0_5px_#00ff9d]"></span>
+                            <span className="w-1 h-1 rounded-full bg-[#3b82f6] shadow-[0_0_5px_#3b82f6]"></span>
                             Quick Access
                         </div>
                     </motion.div>
@@ -115,11 +115,11 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
                             <Link
                                 href={item.href}
                                 onClick={() => setSidebarOpen(false)}
-                                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-300 hover:text-[#00ff9d] hover:bg-[#00ff9d]/10 rounded-xl transition-colors border border-transparent hover:border-[#00ff9d]/20 group"
+                                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-300 hover:text-[#3b82f6] hover:bg-[#3b82f6]/10 rounded-xl transition-colors border border-transparent hover:border-[#3b82f6]/20 group"
                             >
-                                <item.icon className="w-5 h-5 text-gray-500 group-hover:text-[#00ff9d] transition-colors" />
+                                <item.icon className="w-5 h-5 text-gray-500 group-hover:text-[#3b82f6] transition-colors" />
                                 {item.label}
-                                <ArrowRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all text-[#00ff9d]" />
+                                <ArrowRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all text-[#3b82f6]" />
                             </Link>
                         </motion.div>
                     ))}
@@ -127,13 +127,13 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
                 </div>
 
                 {/* Sidebar Footer */}
-                <div className="p-5 border-t border-[#00ff9d]/10 bg-[#00ff9d]/5">
+                <div className="p-5 border-t border-[#3b82f6]/10 bg-[#3b82f6]/5">
                   {!user ? (
                     <div className="grid grid-cols-2 gap-3">
                         <Link 
                             href="/login"
                             onClick={() => setSidebarOpen(false)}
-                            className="flex items-center justify-center gap-2 py-3 rounded-xl border border-[#00ff9d]/20 bg-[#00ff9d]/5 text-sm font-medium text-white hover:bg-[#00ff9d]/10 hover:border-[#00ff9d]/50 transition-colors"
+                            className="flex items-center justify-center gap-2 py-3 rounded-xl border border-[#3b82f6]/20 bg-[#3b82f6]/5 text-sm font-medium text-white hover:bg-[#3b82f6]/10 hover:border-[#3b82f6]/50 transition-colors"
                         >
                             <LogIn className="w-4 h-4" />
                             Log in
@@ -141,7 +141,7 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
                         <Link
                             href="/signup"
                             onClick={() => setSidebarOpen(false)}
-                            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-[#00ff9d]/10 border border-[#00ff9d]/20 text-[#00ff9d] text-sm font-medium hover:bg-[#00ff9d]/20 hover:border-[#00ff9d]/50 hover:shadow-[0_0_15px_rgba(0,255,157,0.2)] transition-all"
+                            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-[#3b82f6]/10 border border-[#3b82f6]/20 text-[#3b82f6] text-sm font-medium hover:bg-[#3b82f6]/20 hover:border-[#3b82f6]/50 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all"
                         >
                             <UserPlus className="w-4 h-4" />
                             Sign up
@@ -149,15 +149,15 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
                     </div>
                   ) : (
                      <div className="space-y-3">
-                         <div className="flex items-center gap-3 px-2 p-3 rounded-xl bg-[#00ff9d]/5 border border-[#00ff9d]/20">
-                            <div className="relative w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border border-[#00ff9d]/30">
-                                <div className="absolute inset-0 bg-[#00ff9d]/20 animate-pulse" />
-                                <span className="relative z-10 text-sm font-bold text-[#00ff9d] text-shadow-neon">
+                         <div className="flex items-center gap-3 px-2 p-3 rounded-xl bg-[#3b82f6]/5 border border-[#3b82f6]/20">
+                            <div className="relative w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border border-[#3b82f6]/30">
+                                <div className="absolute inset-0 bg-[#3b82f6]/20 animate-pulse" />
+                                <span className="relative z-10 text-sm font-bold text-[#3b82f6] text-shadow-neon">
                                     {user.name ? user.name[0].toUpperCase() : "U"}
                                 </span>
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-white truncate group-hover:text-[#00ff9d] transition-colors">{user.name}</p>
+                                <p className="text-sm font-bold text-white truncate group-hover:text-[#3b82f6] transition-colors">{user.name}</p>
                                 <p className="text-xs text-gray-500 truncate">{user.email}</p>
                             </div>
                          </div>

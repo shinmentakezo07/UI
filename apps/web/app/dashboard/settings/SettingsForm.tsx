@@ -12,7 +12,7 @@ function SubmitButton({ children }: { children: React.ReactNode }) {
         <button 
             type="submit" 
             disabled={pending}
-            className="px-4 py-2 bg-[#00ff9d] text-black font-medium rounded-lg hover:bg-[#00ff9d]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-[#3b82f6] text-black font-medium rounded-lg hover:bg-[#3b82f6]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
             {pending ? "Saving..." : children}
         </button>
@@ -42,7 +42,7 @@ export function SettingsForm({ user }: { user: any }) {
                                 name="name" 
                                 id="name" 
                                 defaultValue={user.name}
-                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#00ff9d]/50 transition-colors"
+                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#3b82f6]/50 transition-colors"
                             />
                              {profileState?.errors?.name && (
                                 <p className="text-red-400 text-xs">{profileState.errors.name[0]}</p>
@@ -55,7 +55,7 @@ export function SettingsForm({ user }: { user: any }) {
                                 name="email" 
                                 id="email" 
                                 defaultValue={user.email}
-                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#00ff9d]/50 transition-colors"
+                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#3b82f6]/50 transition-colors"
                             />
                              {profileState?.errors?.email && (
                                 <p className="text-red-400 text-xs">{profileState.errors.email[0]}</p>
@@ -65,7 +65,7 @@ export function SettingsForm({ user }: { user: any }) {
                     
                     <div className="flex items-center justify-between pt-4">
                          {profileState?.message && (
-                            <p className={`text-sm ${profileState.message.includes("success") ? "text-[#00ff9d]" : "text-red-400"}`}>
+                            <p className={`text-sm ${profileState.message.includes("success") ? "text-[#3b82f6]" : "text-red-400"}`}>
                                 {profileState.message}
                             </p>
                         )}
@@ -91,7 +91,7 @@ export function SettingsForm({ user }: { user: any }) {
                             type="password" 
                             name="currentPassword" 
                             id="currentPassword" 
-                            className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#00ff9d]/50 transition-colors"
+                            className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#3b82f6]/50 transition-colors"
                         />
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
@@ -101,7 +101,7 @@ export function SettingsForm({ user }: { user: any }) {
                                 type="password" 
                                 name="newPassword" 
                                 id="newPassword" 
-                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#00ff9d]/50 transition-colors"
+                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#3b82f6]/50 transition-colors"
                             />
                         </div>
                         <div className="space-y-2">
@@ -110,14 +110,14 @@ export function SettingsForm({ user }: { user: any }) {
                                 type="password" 
                                 name="confirmPassword" 
                                 id="confirmPassword" 
-                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#00ff9d]/50 transition-colors"
+                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#3b82f6]/50 transition-colors"
                             />
                         </div>
                     </div>
 
                     <div className="flex items-center justify-between pt-4">
                          {passwordState?.message && (
-                            <p className={`text-sm ${passwordState.message.includes("success") ? "text-[#00ff9d]" : "text-red-400"}`}>
+                            <p className={`text-sm ${passwordState.message.includes("success") ? "text-[#3b82f6]" : "text-red-400"}`}>
                                 {passwordState.message}
                             </p>
                         )}
