@@ -38,7 +38,7 @@ Added 4 new tables to support API gateway functionality:
 - Mobile: Overlay sidebar with hamburger menu
 
 ### Sidebar Sections
-- **Logo**: Shinmen Takzo branding
+- **Logo**: Yapapa branding
 - **Navigation**: Overview, Logs, API Keys, Analytics
 - **Bottom Actions**: Back to Home, Settings, Sign Out
 

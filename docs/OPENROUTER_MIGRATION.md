@@ -51,7 +51,7 @@ Each model card shows:
 
 **Updated:**
 - Pricing section title: "Choose Your PROTOCOL" → "Simple Credit Packages"
-- Footer: "2077 Shinmen Takzo Corp. All systems nominal" → "2026 Shinmen Takzo. Universal LLM Gateway"
+- Footer: "2077 Yapapa Corp. All systems nominal" → "2026 Yapapa. Universal LLM Gateway"
 - Badge colors: Changed from violet/fuchsia to emerald (more professional)
 
 ### 5. ✅ Feature Messaging
