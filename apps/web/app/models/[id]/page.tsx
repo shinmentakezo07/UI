@@ -47,17 +47,13 @@ const providerConfig: Record<string, { icon: any; color: string; gradient: strin
 // ─────────────────────────────────────────────────────────────────────────────
 function AmbientBackground() {
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none bg-[#050505]">
-      {/* Ambient blobs */}
+    <div className="fixed inset-0 z-0 pointer-events-none">
+      {/* Ambient gradient blobs */}
       <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] animate-pulse-slow" />
       <div className="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px] animate-pulse-slow delay-1000" />
-      <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] bg-[#00ff9d]/5 rounded-full blur-[120px] animate-pulse-slow delay-500" />
 
       {/* Grid overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20" />
-
-      {/* Vignette */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000_100%)]" />
     </div>
   );
 }
@@ -78,7 +74,7 @@ function SectionHeader({ icon: Icon, label, gradient = "from-blue-500/20 to-tran
 
 function DetailCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`p-6 rounded-2xl bg-[#0A0A0A] border border-white/5 relative overflow-hidden group hover:border-white/10 transition-colors shadow-lg ${className}`}>
+    <div className={`p-6 rounded-2xl bg-[#0e0e0e] border border-white/5 relative overflow-hidden group hover:border-blue-500/30 transition-colors shadow-lg ${className}`}>
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       <div className="relative z-10">{children}</div>
     </div>
@@ -285,24 +281,36 @@ export default function ModelDetailPage() {
 
                   {/* Quick stats row */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 gsap-hero-item">
-                    <div className="px-3 py-2.5 rounded-lg bg-white/5 border border-white/10">
-                      <div className="text-[10px] text-gray-400 font-mono mb-0.5 uppercase">Input</div>
-                      <div className="text-base font-bold text-emerald-400 font-mono">${inputPrice}</div>
-                      <div className="text-[9px] text-gray-500 font-mono">per 1M</div>
+                    <div className="group relative px-4 py-3 rounded-xl bg-[#0A0A0A] border border-white/5 hover:border-emerald-500/30 transition-all">
+                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
+                      <div className="relative z-10">
+                        <div className="text-[10px] text-gray-500 font-mono mb-1 uppercase tracking-wider">Input</div>
+                        <div className="text-lg font-bold text-emerald-400 font-mono">${inputPrice}</div>
+                        <div className="text-[9px] text-gray-600 font-mono">per 1M</div>
+                      </div>
                     </div>
-                    <div className="px-3 py-2.5 rounded-lg bg-white/5 border border-white/10">
-                      <div className="text-[10px] text-gray-400 font-mono mb-0.5 uppercase">Output</div>
-                      <div className="text-base font-bold text-cyan-400 font-mono">${outputPrice}</div>
-                      <div className="text-[9px] text-gray-500 font-mono">per 1M</div>
+                    <div className="group relative px-4 py-3 rounded-xl bg-[#0A0A0A] border border-white/5 hover:border-cyan-500/30 transition-all">
+                      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
+                      <div className="relative z-10">
+                        <div className="text-[10px] text-gray-500 font-mono mb-1 uppercase tracking-wider">Output</div>
+                        <div className="text-lg font-bold text-cyan-400 font-mono">${outputPrice}</div>
+                        <div className="text-[9px] text-gray-600 font-mono">per 1M</div>
+                      </div>
                     </div>
-                    <div className="px-3 py-2.5 rounded-lg bg-white/5 border border-white/10">
-                      <div className="text-[10px] text-gray-400 font-mono mb-0.5 uppercase">Max Out</div>
-                      <div className="text-base font-bold text-white font-mono">{maxOut}</div>
-                      <div className="text-[9px] text-gray-500 font-mono">tokens</div>
+                    <div className="group relative px-4 py-3 rounded-xl bg-[#0A0A0A] border border-white/5 hover:border-purple-500/30 transition-all">
+                      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
+                      <div className="relative z-10">
+                        <div className="text-[10px] text-gray-500 font-mono mb-1 uppercase tracking-wider">Max Out</div>
+                        <div className="text-lg font-bold text-purple-400 font-mono">{maxOut}</div>
+                        <div className="text-[9px] text-gray-600 font-mono">tokens</div>
+                      </div>
                     </div>
-                    <div className="px-3 py-2.5 rounded-lg bg-white/5 border border-white/10">
-                      <div className="text-[10px] text-gray-400 font-mono mb-0.5 uppercase">Type</div>
-                      <div className="text-base font-bold text-white font-mono">{modality}</div>
+                    <div className="group relative px-4 py-3 rounded-xl bg-[#0A0A0A] border border-white/5 hover:border-blue-500/30 transition-all">
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
+                      <div className="relative z-10">
+                        <div className="text-[10px] text-gray-500 font-mono mb-1 uppercase tracking-wider">Type</div>
+                        <div className="text-lg font-bold text-blue-400 font-mono">{modality}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -344,7 +352,7 @@ export default function ModelDetailPage() {
                   </motion.div>
 
                   <motion.div whileHover={{ y: -4 }} className="cursor-default">
-                    <GlassCard className="h-full border-white/5 hover:border-blue-500/30 transition-colors">
+                    <GlassCard className="h-full border-white/5 hover:border-purple-500/30 transition-colors">
                       <GlassHeader className="pb-4">
                         <GlassTitle className="text-xs font-mono uppercase tracking-wider text-gray-400">Max Output</GlassTitle>
                       </GlassHeader>
@@ -352,7 +360,7 @@ export default function ModelDetailPage() {
                         <div className="text-3xl font-bold text-white font-mono">{maxOut}</div>
                         <div className="text-[10px] text-gray-500 font-mono mt-1">tokens</div>
                         <div className="w-full h-1 bg-white/10 rounded-full mt-4 overflow-hidden">
-                          <div className="h-full bg-blue-500 rounded-full" style={{ width: model.top_provider?.max_completion_tokens ? `${Math.min((model.top_provider.max_completion_tokens / 100000) * 100, 100)}%` : "0%" }} />
+                          <div className="h-full bg-purple-500 rounded-full" style={{ width: model.top_provider?.max_completion_tokens ? `${Math.min((model.top_provider.max_completion_tokens / 100000) * 100, 100)}%` : "0%" }} />
                         </div>
                       </GlassContent>
                     </GlassCard>

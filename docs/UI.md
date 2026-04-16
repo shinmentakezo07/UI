@@ -485,6 +485,68 @@ When building new components, ensure:
 
 ---
 
-**Last Updated**: 2026-04-15
+## Model Detail Pages
+
+### Layout Theme
+Model detail pages use the refined dark theme with ambient gradient blobs and grid overlay.
+
+#### Background
+- **Page Background**: `#050505` (near-black)
+- **Card Background**: `#0e0e0e` (dark gray)
+- **Ambient Gradient Blobs**: Blue and purple gradient blobs with `blur-[120px]` and `animate-pulse-slow`
+
+```tsx
+<div className="fixed inset-0 z-0 pointer-events-none">
+  <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] animate-pulse-slow" />
+  <div className="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px] animate-pulse-slow delay-1000" />
+</div>
+```
+
+#### Visual Components
+
+**Detail Card**
+```tsx
+<div className="p-6 rounded-2xl bg-[#0e0e0e] border border-white/5 relative overflow-hidden group hover:border-blue-500/30 transition-colors shadow-lg">
+  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+  <div className="relative z-10">
+    {/* Content */}
+  </div>
+</div>
+```
+
+**Gradient Border Card**
+```tsx
+<div className="group relative p-[1px] rounded-2xl bg-gradient-to-b from-white/10 to-white/5 hover:from-blue-500/50 hover:to-purple-500/50 transition-all duration-300">
+  <div className="relative h-full bg-[#0e0e0e] rounded-[15px] p-6 overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+    <div className="relative z-10">{/* Content */}</div>
+  </div>
+</div>
+```
+
+**Section Header**
+```tsx
+<div className="flex items-center gap-3 mb-4">
+  <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-transparent border border-white/10 text-white">
+    <Icon className="w-4 h-4" />
+  </div>
+  <h2 className="text-sm font-mono font-bold text-white uppercase tracking-wider">Section Label</h2>
+</div>
+```
+
+**Stat Value**
+```tsx
+<div className="relative group">
+  <div className="absolute -inset-0.5 bg-gradient-to-br from-white/5 to-transparent rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity" />
+  <div className="relative p-4 rounded-lg bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all">
+    <div className="text-[10px] text-gray-500 font-mono uppercase tracking-wider mb-1">Label</div>
+    <div className="text-2xl font-bold font-mono text-white">Value</div>
+  </div>
+</div>
+```
+
+---
+
+**Last Updated**: 2026-04-16
 **Dashboard URL**: http://localhost:3000/dashboard
 **Theme**: Cyberpunk / Tech / Dark Mode

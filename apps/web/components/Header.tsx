@@ -25,7 +25,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
     return (
         <header className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4">
             {/* Static Header Content matching the initial state */}
-            <div className="relative w-full max-w-6xl h-16 px-4 flex items-center justify-between rounded-2xl bg-[#0A0A0A]/80 backdrop-blur-xl border border-[#00ff9d]/10 shadow-2xl shadow-black/50 ring-1 ring-white/5">
+            <div className="relative w-full max-w-6xl h-16 px-4 flex items-center justify-between rounded-2xl bg-[#0A0A0A]/80 backdrop-blur-xl border border-[#3b82f6]/10 shadow-2xl shadow-black/50 ring-1 ring-white/5">
                 <div className="flex items-center gap-6 relative z-10">
                     <button className="md:hidden p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
                         <Menu className="h-5 w-5" />
@@ -67,15 +67,15 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                                         <Flame className="w-3.5 h-3.5 fill-current" />
                                         <span className="text-xs font-bold font-mono">{user.streakCurrent || 0}</span>
                                     </div>
-                                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[#3b82f6]/10 border border-[#3b82f6]/20 text-[#3b82f6]">
                                         <Star className="w-3.5 h-3.5 fill-current" />
                                         <span className="text-xs font-bold font-mono">{user.xp || 0} XP</span>
                                     </div>
                                 </div>
-                                <Link href="/dashboard" className="flex items-center gap-3 pl-1 pr-2 py-1 rounded-full bg-[#00ff9d]/5 border border-[#00ff9d]/20">
-                                    <div className="relative w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border border-[#00ff9d]/30">
-                                        <div className="absolute inset-0 bg-[#00ff9d]/20" />
-                                        <span className="relative z-10 text-xs font-bold text-[#00ff9d]">{user.name ? user.name[0].toUpperCase() : "U"}</span>
+                                <Link href="/dashboard" className="flex items-center gap-3 pl-1 pr-2 py-1 rounded-full bg-[#3b82f6]/5 border border-[#3b82f6]/20">
+                                    <div className="relative w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border border-[#3b82f6]/30">
+                                        <div className="absolute inset-0 bg-[#3b82f6]/20" />
+                                        <span className="relative z-10 text-xs font-bold text-[#3b82f6]">{user.name ? user.name[0].toUpperCase() : "U"}</span>
                                     </div>
                                     <span className="text-sm font-medium text-gray-200 max-w-[100px] truncate mr-1">{user.name}</span>
                                 </Link>
@@ -85,7 +85,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                         ) : (
                             <div className="hidden md:flex gap-3">
                                 <div className="text-sm font-medium text-gray-400 px-3 py-2">Log in</div>
-                                <div className="relative inline-flex items-center justify-center h-9 px-5 rounded-lg text-sm font-medium text-[#00ff9d] bg-[#00ff9d]/10 border border-[#00ff9d]/20">Get Started</div>
+                                <div className="relative inline-flex items-center justify-center h-9 px-5 rounded-lg text-sm font-medium text-[#3b82f6] bg-[#3b82f6]/10 border border-[#3b82f6]/20">Get Started</div>
                             </div>
                         )}
                     </div>
@@ -102,7 +102,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
       className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4"
       suppressHydrationWarning
     >
-      <div className="relative w-full max-w-6xl h-16 px-4 flex items-center justify-between rounded-2xl bg-[#0A0A0A]/80 backdrop-blur-xl border border-[#00ff9d]/10 shadow-2xl shadow-black/50 ring-1 ring-white/5" suppressHydrationWarning>
+      <div className="relative w-full max-w-6xl h-16 px-4 flex items-center justify-between rounded-2xl bg-[#0A0A0A]/80 backdrop-blur-xl border border-[#3b82f6]/10 shadow-2xl shadow-black/50 ring-1 ring-white/5" suppressHydrationWarning>
         <div className="flex items-center gap-6 relative z-10" suppressHydrationWarning>
             <button 
                 onClick={onMenuClick}
@@ -206,7 +206,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                     </Link>
                     <Link
                         href="/signup"
-                        className="relative inline-flex items-center justify-center h-9 px-5 rounded-lg text-sm font-medium text-[#00ff9d] bg-[#00ff9d]/10 border border-[#00ff9d]/20 hover:bg-[#00ff9d]/20 hover:border-[#00ff9d]/50 shadow-[0_0_10px_rgba(0,255,157,0.1)] hover:shadow-[0_0_20px_rgba(0,255,157,0.3)] transition-all duration-300 overflow-hidden group"
+                        className="relative inline-flex items-center justify-center h-9 px-5 rounded-lg text-sm font-medium text-[#3b82f6] bg-[#3b82f6]/10 border border-[#3b82f6]/20 hover:bg-[#3b82f6]/20 hover:border-[#3b82f6]/50 shadow-[0_0_10px_rgba(59,130,246,0.1)] hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all duration-300 overflow-hidden group"
                     >
                         <span className="relative">Get Started</span>
                     </Link>
