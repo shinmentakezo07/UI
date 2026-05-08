@@ -8,8 +8,7 @@ const openai = createOpenAI({
   apiKey: "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",
 });
 
-// Set the runtime to edge for best performance
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
