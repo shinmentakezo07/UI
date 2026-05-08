@@ -11,7 +11,18 @@
         "NEXTAUTH_SECRET",
         "AUTH_SECRET",
         "NEXTAUTH_URL",
-        "OPENAI_API_KEY"
+        "OPENAI_API_KEY",
+        "SUPABASE_ANON_KEY",
+        "SUPABASE_SECRET_KEY",
+        "POSTGRES_URL",
+        "POSTGRES_HOST",
+        "SUPABASE_PUBLISHABLE_KEY",
+        "POSTGRES_DATABASE",
+        "POSTGRES_PASSWORD",
+        "POSTGRES_URL_NON_POOLING",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "POSTGRES_USER",
+        "SUPABASE_JWT_SECRET"
       ]
     },
     "lint": {
