@@ -22,7 +22,10 @@
         "POSTGRES_URL_NON_POOLING",
         "SUPABASE_SERVICE_ROLE_KEY",
         "POSTGRES_USER",
-        "SUPABASE_JWT_SECRET"
+        "SUPABASE_JWT_SECRET",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "SUPABASE_URL",
+        "POSTGRES_PRISMA_URL"
       ]
     },
     "lint": {
