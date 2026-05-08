@@ -122,7 +122,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                             layoutId="navbar-hover"
                             className="absolute inset-0 bg-white/10 rounded-lg -z-10"
                             transition={{
-                                type: "spring",
+                                type: "spring" as const,
                                 bounce: 0.2,
                                 duration: 0.6
                             }}

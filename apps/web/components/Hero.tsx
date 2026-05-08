@@ -218,12 +218,12 @@ function TypewriterText({ text, delay = 0, className }: { text: string, delay?: 
         visible: {
             opacity: 1,
             y: 0,
-            transition: { type: "spring", damping: 12, stiffness: 200 }
+            transition: { type: "spring" as const, damping: 12, stiffness: 200 }
         },
         hidden: {
             opacity: 0,
             y: 20,
-            transition: { type: "spring", damping: 12, stiffness: 200 }
+            transition: { type: "spring" as const, damping: 12, stiffness: 200 }
         }
     };
 
@@ -302,7 +302,7 @@ function InteractiveTerminal() {
             <motion.div 
                 initial={{ rotateY: 15, rotateX: 5 }}
                 whileHover={{ rotateY: 0, rotateX: 0 }}
-                transition={{ type: "spring", stiffness: 50 }}
+                transition={{ type: "spring" as const, stiffness: 50 }}
                 className="relative h-[420px] flex flex-col bg-[#0A0A0A]/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden ring-1 ring-white/5 transform-style-3d group-hover:border-white/20"
             >
                 {/* Top Bar */}
@@ -736,7 +736,7 @@ export function Hero() {
             <motion.div 
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5, duration: 1, type: "spring" }}
+                transition={{ delay: 0.5, duration: 1, type: "spring" as const }}
                 className="relative hidden lg:block"
             >
                 <InteractiveTerminal />

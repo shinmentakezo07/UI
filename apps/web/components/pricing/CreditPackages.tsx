@@ -76,7 +76,7 @@ export function CreditPackages() {
                             viewport={{ once: true }}
                             transition={{
                                 delay: i * 0.15,
-                                type: "spring",
+                                type: "spring" as const,
                                 stiffness: 100,
                                 damping: 15
                             }}

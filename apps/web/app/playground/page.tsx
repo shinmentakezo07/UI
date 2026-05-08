@@ -265,7 +265,7 @@ export default function PlaygroundPage() {
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 288, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+            transition={{ type: "spring" as const, stiffness: 380, damping: 30 }}
             className="relative z-20 flex flex-col border-r border-white/10 bg-[#0A0A0A]/80 backdrop-blur-2xl overflow-hidden shrink-0"
           >
             <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
@@ -398,7 +398,7 @@ export default function PlaygroundPage() {
                             initial={{ opacity: 0, scale: 0.85, y: -8 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.85, y: -8 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                            transition={{ type: "spring" as const, stiffness: 400, damping: 25 }}
                             className="group flex items-center gap-2 pl-2 pr-1.5 py-1 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 rounded-full transition-colors"
                           >
                             {model.logo && (

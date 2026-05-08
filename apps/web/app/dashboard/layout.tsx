@@ -101,7 +101,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              transition={{ type: "spring" as const, damping: 30, stiffness: 300 }}
               className="lg:hidden fixed inset-y-0 left-0 w-64 bg-[#0A0A0A] border-r border-white/10 z-50 flex flex-col"
             >
               {/* Logo */}

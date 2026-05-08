@@ -36,7 +36,7 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
       x: 0, 
       opacity: 1,
       transition: { 
-        type: "spring", 
+        type: "spring" as const, 
         stiffness: 300, 
         damping: 30,
         staggerChildren: 0.05,
