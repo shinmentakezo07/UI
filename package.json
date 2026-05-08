@@ -18,28 +18,35 @@
     "turbo": "latest"
   },
   "packageManager": "npm@10.0.0",
+  "overrides": {
+    "dompurify": "^3.4.2",
+    "esbuild": "^0.25.12",
+    "postcss": "^8.5.10",
+    "uuid": "^14.0.0"
+  },
   "dependencies": {
-    "@ai-sdk/react": "^2.0.105",
+    "@ai-sdk/react": "^3.0.176",
     "@hookform/resolvers": "^5.2.2",
     "@monaco-editor/react": "^4.7.0",
-    "@neondatabase/serverless": "^1.0.2",
+    "@neondatabase/serverless": "^1.1.0",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
-    "ai": "^5.0.105",
+    "ai": "^6.0.176",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
-    "framer-motion": "^12.23.25",
-    "lucide-react": "^0.555.0",
-    "mermaid": "^11.12.1",
-    "next-auth": "^5.0.0-beta.30",
-    "openai": "^6.9.1",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^1.14.0",
+    "mermaid": "^11.14.0",
+    "next-auth": "^5.0.0-beta.31",
+    "next": "^16.3.0-canary.16",
+    "openai": "^6.36.0",
     "prism-react-renderer": "^2.4.1",
-    "react-hook-form": "^7.67.0",
+    "react-hook-form": "^7.74.0",
     "react-markdown": "^10.1.0",
-    "react-syntax-highlighter": "^16.1.0",
-    "tailwind-merge": "^3.4.0",
-    "zod": "^4.1.13"
+    "react-syntax-highlighter": "^16.1.1",
+    "tailwind-merge": "^3.5.0",
+    "zod": "^4.4.3"
   }
 }
