@@ -9,9 +9,15 @@ import { users } from "./db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
+const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+
+if (!secret) {
+  throw new Error('AUTH_SECRET or NEXTAUTH_SECRET environment variable is required');
+}
+
 export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  secret,
   providers: [
     GitHub,
     Google,
