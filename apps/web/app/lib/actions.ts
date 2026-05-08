@@ -86,7 +86,11 @@ export async function authenticate(
   formData: FormData,
 ) {
   try {
-    await signIn('credentials', formData);
+    await signIn('credentials', {
+      redirectTo: '/dashboard',
+      email: formData.get('email'),
+      password: formData.get('password'),
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
@@ -101,7 +105,7 @@ export async function authenticate(
 }
 
 export async function authenticateSocial(provider: string) {
-    await signIn(provider);
+    await signIn(provider, { redirectTo: '/dashboard' });
 }
 
 export async function forgotPassword(prevState: any, formData: FormData) {
