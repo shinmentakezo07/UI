@@ -19,6 +19,8 @@ import (
 	"dra-platform/backend/internal/provider"
 	"dra-platform/backend/internal/repository"
 	"dra-platform/backend/internal/service"
+	"dra-platform/backend/pkg/llm/cache"
+	"dra-platform/backend/pkg/llm/watcher"
 
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
@@ -52,16 +54,38 @@ func main() {
 	txRepo := repository.NewTransactionRepo(database)
 	logRepo := repository.NewLogRepo(database)
 
-	// Provider registry
+	// Provider registry with optional SDK features
+	var llmCache cache.Cache
+	if cfg.EnableCache {
+		llmCache = cache.NewMemoryCache(
+			cache.WithMaxSize(cfg.CacheMaxSize),
+			cache.WithDefaultTTL(cfg.CacheDefaultTTL),
+		)
+		llmCache.StartCleanup(1 * time.Minute)
+		logger.Info("llm_cache_enabled", "max_size", cfg.CacheMaxSize, "ttl", cfg.CacheDefaultTTL)
+	}
+
+	llmWatcher := watcher.New()
+	llmWatcher.RegisterAll(func(ctx context.Context, record watcher.ErrorRecord) error {
+		logger.Error("llm_provider_error",
+			"category", record.Category,
+			"provider", record.Provider,
+			"model", record.Model,
+			"message", record.Message,
+			"retryable", record.Retryable,
+		)
+		return nil
+	})
+
 	registry := provider.NewRegistry()
 	if cfg.NvidiaAPIKey != "" {
-		registry.Register(provider.NewNVIDIAProvider(cfg.NvidiaAPIKey))
+		registry.Register(provider.NewNVIDIAProviderWithOptions(cfg.NvidiaAPIKey, llmCache, llmWatcher))
 	}
 	if cfg.OpenAIAPIKey != "" {
-		registry.Register(provider.NewOpenAIProvider(cfg.OpenAIAPIKey))
+		registry.Register(provider.NewOpenAIProviderWithOptions(cfg.OpenAIAPIKey, llmCache, llmWatcher))
 	}
 	if cfg.AnthropicAPIKey != "" {
-		registry.Register(provider.NewAnthropicProvider(cfg.AnthropicAPIKey))
+		registry.Register(provider.NewAnthropicProviderWithOptions(cfg.AnthropicAPIKey, llmCache, llmWatcher))
 	}
 	if len(registry.Providers()) == 0 {
 		logger.Warn("no_ai_providers_configured")
@@ -73,7 +97,7 @@ func main() {
 	creditSvc := service.NewCreditService(database, creditsRepo, txRepo, logRepo)
 	analyticsSvc := service.NewAnalyticsService(logRepo, userRepo, creditsRepo, keyRepo)
 	logSvc := service.NewLogService(logRepo)
-	providerSvc := service.NewProviderService(registry)
+	providerSvc := service.NewProviderServiceWithFeatures(registry, llmCache, llmWatcher)
 
 	// Handler
 	h := handler.New(cfg, database, userSvc, keySvc, creditSvc, analyticsSvc, logSvc, providerSvc)

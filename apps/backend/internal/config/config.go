@@ -25,6 +25,10 @@ type Config struct {
 
 	EnableMetrics bool
 	MetricsPort   string
+
+	EnableCache     bool
+	CacheMaxSize    int
+	CacheDefaultTTL time.Duration
 }
 
 func Load() (*Config, error) {
@@ -42,6 +46,9 @@ func Load() (*Config, error) {
 		ShutdownTimeout: getEnvDuration("SHUTDOWN_TIMEOUT", 10*time.Second),
 		EnableMetrics:   getEnvBool("ENABLE_METRICS", true),
 		MetricsPort:     getEnv("METRICS_PORT", "9090"),
+		EnableCache:     getEnvBool("ENABLE_CACHE", true),
+		CacheMaxSize:    getEnvInt("CACHE_MAX_SIZE", 10000),
+		CacheDefaultTTL: getEnvDuration("CACHE_DEFAULT_TTL", 5*time.Minute),
 	}
 
 	if cfg.AuthSecret == "" {

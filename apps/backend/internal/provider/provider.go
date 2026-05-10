@@ -8,6 +8,11 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"dra-platform/backend/pkg/llm"
+	llmcache "dra-platform/backend/pkg/llm/cache"
+	llmprovider "dra-platform/backend/pkg/llm/provider"
+	llmwatcher "dra-platform/backend/pkg/llm/watcher"
 )
 
 // Message represents a chat message.
@@ -127,37 +132,12 @@ func HTTPDo(client *http.Client, req *http.Request) (*http.Response, error) {
 
 // ReadSSE reads server-sent events from a reader and yields data lines.
 func ReadSSE(r io.Reader, yield func(string) bool) {
-	buf := make([]byte, 4096)
-	var line []byte
-	for {
-		n, err := r.Read(buf)
-		if n > 0 {
-			for i := 0; i < n; i++ {
-				b := buf[i]
-				if b == '\n' {
-					if len(line) > 0 {
-						if !yield(string(line)) {
-							return
-						}
-					}
-					line = line[:0]
-				} else if b != '\r' {
-					line = append(line, b)
-				}
-			}
-		}
-		if err != nil {
-			if len(line) > 0 {
-				yield(string(line))
-			}
-			return
-		}
-	}
+	llmprovider.ReadSSE(r, yield)
 }
 
 // CountTokens estimates token count using a simple heuristic (4 chars ≈ 1 token).
 func CountTokens(text string) int {
-	return len(text) / 4
+	return llm.EstimateTokens(text)
 }
 
 // ExtractJSONContent pulls the assistant content from an OpenAI-style JSON chunk.
@@ -204,3 +184,228 @@ func (e *ErrProviderUnavailable) Error() string {
 }
 
 func (e *ErrProviderUnavailable) Unwrap() error { return e.Cause }
+
+// --- Conversion helpers between internal and pkg/llm types ---
+
+func toLLMMessages(msgs []Message) []llm.Message {
+	result := make([]llm.Message, len(msgs))
+	for i, m := range msgs {
+		result[i] = llm.Message{
+			Role:    llm.Role(m.Role),
+			Content: m.Content,
+		}
+	}
+	return result
+}
+
+func fromLLMResponse(resp *llm.ChatResponse) *ChatResponse {
+	content := ""
+	if len(resp.Choices) > 0 {
+		content = resp.Choices[0].Message.Content
+	}
+	return &ChatResponse{
+		Content:      content,
+		InputTokens:  resp.Usage.PromptTokens,
+		OutputTokens: resp.Usage.CompletionTokens,
+		Model:        resp.Model,
+		Provider:     resp.Provider,
+	}
+}
+
+func fromLLMStreamChunk(ch <-chan llm.StreamChunk) <-chan StreamChunk {
+	out := make(chan StreamChunk, 64)
+	go func() {
+		defer close(out)
+		for chunk := range ch {
+			var fr string
+			if chunk.FinishReason != nil {
+				fr = string(*chunk.FinishReason)
+			}
+			out <- StreamChunk{
+				Content:      chunk.Delta.Content,
+				FinishReason: fr,
+			}
+		}
+	}()
+	return out
+}
+
+func fromLLMModels(models []llm.ModelInfo) []ModelInfo {
+	result := make([]ModelInfo, len(models))
+	for i, m := range models {
+		result[i] = ModelInfo{
+			ID:               m.ID,
+			Name:             m.Name,
+			Provider:         m.Provider,
+			InputPricePer1k:  m.InputPricePer1k,
+			OutputPricePer1k: m.OutputPricePer1k,
+			ContextWindow:    m.ContextWindow,
+			Description:      m.Description,
+			Capabilities:     m.Capabilities,
+		}
+	}
+	return result
+}
+
+func toLLMChatRequest(req ChatRequest) *llm.ChatRequest {
+	return &llm.ChatRequest{
+		Model:       req.Model,
+		Messages:    toLLMMessages(req.Messages),
+		Temperature: req.Temperature,
+		MaxTokens:   req.MaxTokens,
+		Stream:      req.Stream,
+		System:      req.System,
+	}
+}
+
+// wrapError wraps an error from pkg/llm into ErrProviderUnavailable if appropriate.
+func wrapError(provider string, err error) error {
+	if err == nil {
+		return nil
+	}
+	return &ErrProviderUnavailable{Provider: provider, Cause: err}
+}
+
+// --- New provider constructors that delegate to pkg/llm/provider ---
+
+// NewOpenAIProvider creates an OpenAI provider with SDK features.
+func NewOpenAIProvider(apiKey string) Provider {
+	return &openAIProviderWrapper{
+		inner: llmprovider.NewOpenAIProvider(llmprovider.WithAPIKey(apiKey)),
+	}
+}
+
+// NewAnthropicProvider creates an Anthropic provider with SDK features.
+func NewAnthropicProvider(apiKey string) Provider {
+	return &anthropicProviderWrapper{
+		inner: llmprovider.NewAnthropicProvider(llmprovider.WithAPIKey(apiKey)),
+	}
+}
+
+// NewNVIDIAProvider creates an NVIDIA (generic OpenAI-compatible) provider.
+func NewNVIDIAProvider(apiKey string) Provider {
+	return &genericProviderWrapper{
+		name:  "nvidia",
+		inner: llmprovider.NewGenericProvider("nvidia", "https://integrate.api.nvidia.com/v1", llmprovider.WithAPIKey(apiKey)),
+	}
+}
+
+// openAIProviderWrapper wraps pkg/llm/provider.OpenAIProvider.
+type openAIProviderWrapper struct {
+	inner *llmprovider.OpenAIProvider
+}
+
+func (p *openAIProviderWrapper) Name() string { return p.inner.Name() }
+
+func (p *openAIProviderWrapper) Chat(ctx context.Context, req ChatRequest) (*ChatResponse, error) {
+	resp, err := p.inner.Chat(ctx, toLLMChatRequest(req))
+	if err != nil {
+		return nil, wrapError(p.Name(), err)
+	}
+	return fromLLMResponse(resp), nil
+}
+
+func (p *openAIProviderWrapper) ChatStream(ctx context.Context, req ChatRequest) (<-chan StreamChunk, error) {
+	ch, err := p.inner.ChatStream(ctx, toLLMChatRequest(req))
+	if err != nil {
+		return nil, wrapError(p.Name(), err)
+	}
+	return fromLLMStreamChunk(ch), nil
+}
+
+func (p *openAIProviderWrapper) ListModels(ctx context.Context) ([]ModelInfo, error) {
+	models, err := p.inner.ListModels(ctx)
+	if err != nil {
+		return nil, wrapError(p.Name(), err)
+	}
+	return fromLLMModels(models), nil
+}
+
+// anthropicProviderWrapper wraps pkg/llm/provider.AnthropicProvider.
+type anthropicProviderWrapper struct {
+	inner *llmprovider.AnthropicProvider
+}
+
+func (p *anthropicProviderWrapper) Name() string { return p.inner.Name() }
+
+func (p *anthropicProviderWrapper) Chat(ctx context.Context, req ChatRequest) (*ChatResponse, error) {
+	resp, err := p.inner.Chat(ctx, toLLMChatRequest(req))
+	if err != nil {
+		return nil, wrapError(p.Name(), err)
+	}
+	return fromLLMResponse(resp), nil
+}
+
+func (p *anthropicProviderWrapper) ChatStream(ctx context.Context, req ChatRequest) (<-chan StreamChunk, error) {
+	ch, err := p.inner.ChatStream(ctx, toLLMChatRequest(req))
+	if err != nil {
+		return nil, wrapError(p.Name(), err)
+	}
+	return fromLLMStreamChunk(ch), nil
+}
+
+func (p *anthropicProviderWrapper) ListModels(ctx context.Context) ([]ModelInfo, error) {
+	models, err := p.inner.ListModels(ctx)
+	if err != nil {
+		return nil, wrapError(p.Name(), err)
+	}
+	return fromLLMModels(models), nil
+}
+
+// genericProviderWrapper wraps pkg/llm/provider.GenericProvider.
+type genericProviderWrapper struct {
+	name  string
+	inner *llmprovider.GenericProvider
+}
+
+func (p *genericProviderWrapper) Name() string { return p.name }
+
+func (p *genericProviderWrapper) Chat(ctx context.Context, req ChatRequest) (*ChatResponse, error) {
+	resp, err := p.inner.Chat(ctx, toLLMChatRequest(req))
+	if err != nil {
+		return nil, wrapError(p.Name(), err)
+	}
+	return fromLLMResponse(resp), nil
+}
+
+func (p *genericProviderWrapper) ChatStream(ctx context.Context, req ChatRequest) (<-chan StreamChunk, error) {
+	ch, err := p.inner.ChatStream(ctx, toLLMChatRequest(req))
+	if err != nil {
+		return nil, wrapError(p.Name(), err)
+	}
+	return fromLLMStreamChunk(ch), nil
+}
+
+func (p *genericProviderWrapper) ListModels(ctx context.Context) ([]ModelInfo, error) {
+	models, err := p.inner.ListModels(ctx)
+	if err != nil {
+		return nil, wrapError(p.Name(), err)
+	}
+	return fromLLMModels(models), nil
+}
+
+// --- Advanced provider creation with SDK features ---
+
+// NewOpenAIProviderWithOptions creates an OpenAI provider with advanced options.
+func NewOpenAIProviderWithOptions(apiKey string, cache llmcache.Cache, watch *llmwatcher.Watcher) Provider {
+	opts := []llmprovider.Option{llmprovider.WithAPIKey(apiKey)}
+	if cache != nil {
+		opts = append(opts, llmprovider.WithCache(cache))
+	}
+	if watch != nil {
+		opts = append(opts, llmprovider.WithWatcher(watch))
+	}
+	return &openAIProviderWrapper{inner: llmprovider.NewOpenAIProvider(opts...)}
+}
+
+// NewAnthropicProviderWithOptions creates an Anthropic provider with advanced options.
+func NewAnthropicProviderWithOptions(apiKey string, cache llmcache.Cache, watch *llmwatcher.Watcher) Provider {
+	opts := []llmprovider.Option{llmprovider.WithAPIKey(apiKey)}
+	if cache != nil {
+		opts = append(opts, llmprovider.WithCache(cache))
+	}
+	if watch != nil {
+		opts = append(opts, llmprovider.WithWatcher(watch))
+	}
+	return &anthropicProviderWrapper{inner: llmprovider.NewAnthropicProvider(opts...)}
+}

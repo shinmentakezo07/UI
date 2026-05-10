@@ -205,12 +205,24 @@ type Provider interface {
 // ClientOption configures the unified LLM client.
 type ClientOption func(*Client)
 
+// Pipeline is the request/response processing pipeline interface.
+type Pipeline interface {
+	RunBefore(ctx context.Context, req *ChatRequest) error
+	RunAfter(ctx context.Context, req *ChatRequest, resp *ChatResponse) error
+}
+
+// Watcher handles errors and events from LLM operations.
+type Watcher interface {
+	HandleError(ctx context.Context, err error)
+	EmitEvent(ctx context.Context, event string, data map[string]interface{})
+}
+
 // Client is the unified LLM client that works with any provider.
 type Client struct {
 	provider Provider
 	cache    Cache
-	pipeline *Pipeline
-	watcher  *Watcher
+	pipeline Pipeline
+	watcher  Watcher
 }
 
 // NewClient creates a new unified LLM client.
@@ -232,14 +244,14 @@ func WithCache(cache Cache) ClientOption {
 }
 
 // WithPipeline sets the pipeline for the client.
-func WithPipeline(p *Pipeline) ClientOption {
+func WithPipeline(p Pipeline) ClientOption {
 	return func(c *Client) {
 		c.pipeline = p
 	}
 }
 
 // WithWatcher sets the watcher for the client.
-func WithWatcher(w *Watcher) ClientOption {
+func WithWatcher(w Watcher) ClientOption {
 	return func(c *Client) {
 		c.watcher = w
 	}
@@ -322,80 +334,4 @@ type Cache interface {
 	Set(ctx context.Context, key string, value *ChatResponse, ttl time.Duration) error
 	Delete(ctx context.Context, key string) error
 	Clear(ctx context.Context) error
-}
-
-// Pipeline is the request/response processing pipeline.
-type Pipeline struct {
-	before []func(ctx context.Context, req *ChatRequest) error
-	after  []func(ctx context.Context, req *ChatRequest, resp *ChatResponse) error
-}
-
-// NewPipeline creates a new pipeline.
-func NewPipeline() *Pipeline {
-	return &Pipeline{}
-}
-
-// AddBefore adds a pre-processing step.
-func (p *Pipeline) AddBefore(fn func(ctx context.Context, req *ChatRequest) error) {
-	p.before = append(p.before, fn)
-}
-
-// AddAfter adds a post-processing step.
-func (p *Pipeline) AddAfter(fn func(ctx context.Context, req *ChatRequest, resp *ChatResponse) error) {
-	p.after = append(p.after, fn)
-}
-
-// RunBefore runs all pre-processing steps.
-func (p *Pipeline) RunBefore(ctx context.Context, req *ChatRequest) error {
-	for _, fn := range p.before {
-		if err := fn(ctx, req); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// RunAfter runs all post-processing steps.
-func (p *Pipeline) RunAfter(ctx context.Context, req *ChatRequest, resp *ChatResponse) error {
-	for _, fn := range p.after {
-		if err := fn(ctx, req, resp); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// Watcher handles errors and events from LLM operations.
-type Watcher struct {
-	onError []func(ctx context.Context, err error)
-	onEvent []func(ctx context.Context, event string, data map[string]interface{})
-}
-
-// NewWatcher creates a new watcher.
-func NewWatcher() *Watcher {
-	return &Watcher{}
-}
-
-// OnError registers an error handler.
-func (w *Watcher) OnError(fn func(ctx context.Context, err error)) {
-	w.onError = append(w.onError, fn)
-}
-
-// OnEvent registers an event handler.
-func (w *Watcher) OnEvent(fn func(ctx context.Context, event string, data map[string]interface{})) {
-	w.onEvent = append(w.onEvent, fn)
-}
-
-// HandleError invokes all error handlers.
-func (w *Watcher) HandleError(ctx context.Context, err error) {
-	for _, fn := range w.onError {
-		fn(ctx, err)
-	}
-}
-
-// EmitEvent invokes all event handlers.
-func (w *Watcher) EmitEvent(ctx context.Context, event string, data map[string]interface{}) {
-	for _, fn := range w.onEvent {
-		fn(ctx, event, data)
-	}
 }
