@@ -1,40 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Key, Plus, Copy, Trash2, Eye, EyeOff, Check, AlertCircle } from "lucide-react";
-
-// Mock data - replace with real API calls
-const mockApiKeys = [
-  {
-    id: "1",
-    name: "Production API",
-    key: "wiwi_live_abc123def456ghi789jkl012mno345pqr678stu901vwx234yz",
-    lastUsed: "2026-04-15T20:45:00.000Z",
-    createdAt: "2026-04-01T10:00:00.000Z",
-  },
-  {
-    id: "2",
-    name: "Development",
-    key: "wiwi_test_xyz987wvu654tsr321qpo098nml765kji432hgf210edc098ba",
-    lastUsed: "2026-04-15T19:30:00.000Z",
-    createdAt: "2026-04-10T14:30:00.000Z",
-  },
-  {
-    id: "3",
-    name: "Mobile App",
-    key: "wiwi_live_mno345pqr678stu901vwx234yz567abc123def456ghi789jkl",
-    lastUsed: null,
-    createdAt: "2026-04-14T09:15:00.000Z",
-  },
-];
+import { Key, Plus, Copy, Trash2, Eye, EyeOff, Check, AlertCircle, Loader2 } from "lucide-react";
+import { getSDK, APIKey } from "@/lib/api/sdk";
+import { getErrorMessage } from "@/lib/api/errors";
 
 export default function KeysClient() {
-  const [keys, setKeys] = useState(mockApiKeys);
+  const [keys, setKeys] = useState<APIKey[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
+  const [creating, setCreating] = useState(false);
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
+
+  const fetchKeys = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getSDK().listKeys();
+      setKeys(data);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchKeys();
+  }, []);
 
   const toggleKeyVisibility = (keyId: string) => {
     setVisibleKeys((prev) => {
@@ -58,25 +56,33 @@ export default function KeysClient() {
     return `${key.slice(0, 12)}${"•".repeat(32)}${key.slice(-4)}`;
   };
 
-  const handleCreateKey = () => {
+  const handleCreateKey = async () => {
     if (!newKeyName.trim()) return;
-    
-    const newKey = {
-      id: Date.now().toString(),
-      name: newKeyName,
-      key: `wiwi_live_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`,
-      lastUsed: null,
-      createdAt: new Date().toISOString(),
-    };
-    
-    setKeys([newKey, ...keys]);
-    setNewKeyName("");
-    setShowCreateModal(false);
+    try {
+      setCreating(true);
+      const created = await getSDK().createKey({ name: newKeyName.trim() });
+      setKeys((prev) => [created, ...prev]);
+      setNewKeyName("");
+      setShowCreateModal(false);
+      if (created.key) {
+        setNewlyCreatedKey(created.id);
+        setVisibleKeys((prev) => new Set(prev).add(created.id));
+        setTimeout(() => setNewlyCreatedKey(null), 5000);
+      }
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setCreating(false);
+    }
   };
 
-  const handleDeleteKey = (keyId: string) => {
-    if (confirm("Are you sure you want to revoke this API key? This action cannot be undone.")) {
-      setKeys(keys.filter((k) => k.id !== keyId));
+  const handleDeleteKey = async (keyId: string) => {
+    if (!confirm("Are you sure you want to revoke this API key? This action cannot be undone.")) return;
+    try {
+      await getSDK().deleteKey(keyId);
+      setKeys((prev) => prev.filter((k) => k.id !== keyId));
+    } catch (err) {
+      setError(getErrorMessage(err));
     }
   };
 
@@ -94,7 +100,7 @@ export default function KeysClient() {
             </div>
             <p className="text-gray-400">Manage your API keys for authentication</p>
           </div>
-          
+
           <button
             onClick={() => setShowCreateModal(true)}
             className="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium transition-colors"
@@ -103,6 +109,17 @@ export default function KeysClient() {
             Create New Key
           </button>
         </div>
+
+        {/* Error Banner */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-sm font-medium text-red-400 mb-1">Error</h3>
+              <p className="text-xs text-red-300/80">{error}</p>
+            </div>
+          </div>
+        )}
 
         {/* Warning Banner */}
         <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-start gap-3">
@@ -115,78 +132,97 @@ export default function KeysClient() {
           </div>
         </div>
 
-        {/* API Keys List */}
-        <div className="space-y-4">
-          {keys.map((apiKey, index) => (
-            <motion.div
-              key={apiKey.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="bg-[#0A0A0A] border border-white/10 rounded-xl p-6 hover:border-white/20 transition-colors"
-            >
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <h3 className="text-lg font-semibold text-white">{apiKey.name}</h3>
-                    <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs font-mono rounded border border-green-500/20">
-                      ACTIVE
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 mb-3">
-                    <code className="flex-1 px-4 py-2 bg-black/50 border border-white/10 rounded-lg text-sm font-mono text-gray-300">
-                      {visibleKeys.has(apiKey.id) ? apiKey.key : maskKey(apiKey.key)}
-                    </code>
-                    
-                    <button
-                      onClick={() => toggleKeyVisibility(apiKey.id)}
-                      className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
-                      title={visibleKeys.has(apiKey.id) ? "Hide key" : "Show key"}
-                    >
-                      {visibleKeys.has(apiKey.id) ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                    
-                    <button
-                      onClick={() => copyToClipboard(apiKey.id, apiKey.key)}
-                      className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
-                      title="Copy to clipboard"
-                    >
-                      {copiedKey === apiKey.id ? (
-                        <Check className="w-4 h-4 text-green-400" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-4 text-xs text-gray-500">
-                    <span>
-                      Created: {new Date(apiKey.createdAt).toLocaleDateString()}
-                    </span>
-                    <span>
-                      Last used: {apiKey.lastUsed ? new Date(apiKey.lastUsed).toLocaleString() : "Never"}
-                    </span>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={() => handleDeleteKey(apiKey.id)}
-                  className="self-start lg:self-center p-2 hover:bg-red-500/10 rounded-lg transition-colors text-gray-400 hover:text-red-400 group"
-                  title="Revoke key"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        {/* Loading */}
+        {loading && (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          </div>
+        )}
 
-        {keys.length === 0 && (
+        {/* API Keys List */}
+        {!loading && (
+          <div className="space-y-4">
+            <AnimatePresence>
+              {keys.map((apiKey, index) => (
+                <motion.div
+                  key={apiKey.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: index * 0.05 }}
+                  className={`bg-[#0A0A0A] border rounded-xl p-6 hover:border-white/20 transition-colors ${
+                    newlyCreatedKey === apiKey.id ? "border-primary/50" : "border-white/10"
+                  }`}
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <h3 className="text-lg font-semibold text-white">{apiKey.name}</h3>
+                        <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs font-mono rounded border border-green-500/20">
+                          ACTIVE
+                        </span>
+                        {newlyCreatedKey === apiKey.id && (
+                          <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-mono rounded border border-primary/20">
+                            NEW
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 mb-3">
+                        <code className="flex-1 px-4 py-2 bg-black/50 border border-white/10 rounded-lg text-sm font-mono text-gray-300">
+                          {visibleKeys.has(apiKey.id) && apiKey.key
+                            ? apiKey.key
+                            : maskKey(apiKey.key || "wiwi_live_********************")}
+                        </code>
+
+                        <button
+                          onClick={() => toggleKeyVisibility(apiKey.id)}
+                          className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
+                          title={visibleKeys.has(apiKey.id) ? "Hide key" : "Show key"}
+                        >
+                          {visibleKeys.has(apiKey.id) ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
+
+                        <button
+                          onClick={() => copyToClipboard(apiKey.id, apiKey.key || "")}
+                          className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
+                          title="Copy to clipboard"
+                        >
+                          {copiedKey === apiKey.id ? (
+                            <Check className="w-4 h-4 text-green-400" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+
+                      <div className="flex flex-wrap gap-4 text-xs text-gray-500">
+                        <span>Created: {new Date(apiKey.createdAt).toLocaleDateString()}</span>
+                        <span>
+                          Last used: {apiKey.lastUsed ? new Date(apiKey.lastUsed).toLocaleString() : "Never"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleDeleteKey(apiKey.id)}
+                      className="self-start lg:self-center p-2 hover:bg-red-500/10 rounded-lg transition-colors text-gray-400 hover:text-red-400 group"
+                      title="Revoke key"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {!loading && keys.length === 0 && (
           <div className="text-center py-12 bg-[#0A0A0A] border border-white/10 rounded-xl">
             <Key className="w-12 h-12 text-gray-600 mx-auto mb-4" />
             <p className="text-gray-500 mb-4">No API keys yet</p>
@@ -221,11 +257,9 @@ export default function KeysClient() {
               <p className="text-gray-400 text-sm mb-6">
                 Give your API key a descriptive name to help you identify it later.
               </p>
-              
+
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Key Name
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Key Name</label>
                 <input
                   type="text"
                   value={newKeyName}
@@ -236,7 +270,7 @@ export default function KeysClient() {
                   onKeyDown={(e) => e.key === "Enter" && handleCreateKey()}
                 />
               </div>
-              
+
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowCreateModal(false)}
@@ -246,9 +280,10 @@ export default function KeysClient() {
                 </button>
                 <button
                   onClick={handleCreateKey}
-                  disabled={!newKeyName.trim()}
-                  className="flex-1 px-4 py-3 bg-primary hover:bg-primary/90 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+                  disabled={!newKeyName.trim() || creating}
+                  className="flex-1 px-4 py-3 bg-primary hover:bg-primary/90 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                 >
+                  {creating && <Loader2 className="w-4 h-4 animate-spin" />}
                   Create Key
                 </button>
               </div>

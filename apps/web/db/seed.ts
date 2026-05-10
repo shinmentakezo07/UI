@@ -1,9 +1,11 @@
 import { config } from "dotenv";
 config({ path: ".env.local" });
 
-import { db } from "./index";
-import { users, apiKeys, apiLogs, userCredits, creditTransactions } from "./schema";
 import { hash } from "bcryptjs";
+
+// Dynamic imports ensure dotenv loads before db module is evaluated
+const { db } = await import("./index");
+const { users, apiKeys, apiLogs, userCredits, creditTransactions } = await import("./schema");
 
 async function seed() {
   console.log("🌱 Seeding database...\n");

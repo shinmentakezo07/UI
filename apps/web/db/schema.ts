@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, integer, boolean, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const users = pgTable("users", {
@@ -10,8 +10,6 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-
-
 // API Keys table for OpenRouter-style dashboard
 export const apiKeys = pgTable("api_keys", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -21,7 +19,9 @@ export const apiKeys = pgTable("api_keys", {
   lastUsed: timestamp("last_used"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   revokedAt: timestamp("revoked_at"),
-});
+}, (table) => ({
+  userIdIdx: index("api_keys_user_id_idx").on(table.userId),
+}));
 
 // API Request Logs table
 export const apiLogs = pgTable("api_logs", {
@@ -37,7 +37,11 @@ export const apiLogs = pgTable("api_logs", {
   status: text("status", { enum: ["success", "error"] }).notNull(),
   errorMessage: text("error_message"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index("api_logs_user_id_idx").on(table.userId),
+  apiKeyIdIdx: index("api_logs_api_key_id_idx").on(table.apiKeyId),
+  createdAtIdx: index("api_logs_created_at_idx").on(table.createdAt),
+}));
 
 // User Credits table
 export const userCredits = pgTable("user_credits", {
@@ -47,7 +51,9 @@ export const userCredits = pgTable("user_credits", {
   totalPurchased: integer("total_purchased").default(0).notNull(),
   totalSpent: integer("total_spent").default(0).notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index("user_credits_user_id_idx").on(table.userId),
+}));
 
 // Credit Transactions table
 export const creditTransactions = pgTable("credit_transactions", {
@@ -58,7 +64,10 @@ export const creditTransactions = pgTable("credit_transactions", {
   description: text("description").notNull(),
   relatedLogId: uuid("related_log_id").references(() => apiLogs.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index("credit_transactions_user_id_idx").on(table.userId),
+  createdAtIdx: index("credit_transactions_created_at_idx").on(table.createdAt),
+}));
 
 // Relations for new tables
 export const apiKeysRelations = relations(apiKeys, ({ one, many }) => ({
