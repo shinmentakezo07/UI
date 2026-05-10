@@ -20,20 +20,13 @@ func NewAnalyticsService(l *repository.LogRepo, u *repository.UserRepo, c *repos
 }
 
 func (s *AnalyticsService) UserAnalytics(ctx context.Context, userID string) (map[string]interface{}, *domain.AppError) {
-	var total, success, errors int
-	s.logRepo.CountByStatus(ctx, "success")
-	s.logRepo.CountByStatus(ctx, "error")
-
-	// We need per-user counts; let's do raw queries
-	// For brevity, we'll fetch logs and compute in Go, or use the repo methods
-	// Actually the log repo doesn't have per-user status count. Let's just get all logs and compute.
-	logs, _, err := s.logRepo.ByUser(ctx, userID, 1, 100000)
+	logs, total, err := s.logRepo.ByUser(ctx, userID, 1, 100000)
 	if err != nil {
 		return nil, domain.Wrap(domain.ErrInternal, 500, "database error", err)
 	}
 
+	success, errors := 0, 0
 	for _, l := range logs {
-		total++
 		if l.Status == "success" {
 			success++
 		} else {

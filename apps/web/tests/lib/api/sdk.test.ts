@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DraSDK, configureSDK, getSDK } from "@/lib/api/sdk";
-import { ApiError, UnauthorizedError, RateLimitError, PaymentRequiredError } from "@/lib/api/errors";
+import { ApiError, UnauthorizedError, ForbiddenError, NotFoundError, BadRequestError, RateLimitError, PaymentRequiredError } from "@/lib/api/errors";
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -47,12 +47,13 @@ describe("DraSDK", () => {
         ok: true,
         status: 200,
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({ success: true, data: user }),
+        json: async () => ({ success: true, data: { user, token: "jwt-token-123" } }),
       });
 
       const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
       const result = await sdk.login({ email: "alice@example.com", password: "password123" });
-      expect(result.email).toBe("alice@example.com");
+      expect(result.user.email).toBe("alice@example.com");
+      expect(result.token).toBe("jwt-token-123");
     });
 
     it("throws UnauthorizedError on 401", async () => {
@@ -65,6 +66,32 @@ describe("DraSDK", () => {
 
       const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
       await expect(sdk.me()).rejects.toThrow(UnauthorizedError);
+    });
+
+    it("updates profile", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { updated: true } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.updateProfile({ name: "Alice Updated", email: "alice@example.com" });
+      expect(result.updated).toBe(true);
+    });
+
+    it("changes password", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { updated: true } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.changePassword({ currentPassword: "old", newPassword: "newpass123" });
+      expect(result.updated).toBe(true);
     });
   });
 
@@ -109,6 +136,19 @@ describe("DraSDK", () => {
       const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
       const result = await sdk.deleteKey("1");
       expect(result.deleted).toBe(true);
+    });
+
+    it("revokes a key", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { revoked: true } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.revokeKey("1");
+      expect(result.revoked).toBe(true);
     });
   });
 
@@ -200,6 +240,42 @@ describe("DraSDK", () => {
   });
 
   describe("error mapping", () => {
+    it("maps 400 to BadRequestError", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: false, error: "Bad request" }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      await expect(sdk.me()).rejects.toThrow(BadRequestError);
+    });
+
+    it("maps 403 to ForbiddenError", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: false, error: "Forbidden" }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      await expect(sdk.me()).rejects.toThrow(ForbiddenError);
+    });
+
+    it("maps 404 to NotFoundError", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: false, error: "Not found" }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      await expect(sdk.me()).rejects.toThrow(NotFoundError);
+    });
+
     it("maps 429 to RateLimitError", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,

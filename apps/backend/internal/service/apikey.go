@@ -51,3 +51,17 @@ func (s *APIKeyService) Delete(ctx context.Context, userID, keyID string) *domai
 	}
 	return nil
 }
+
+func (s *APIKeyService) Revoke(ctx context.Context, userID, keyID string) *domain.AppError {
+	key, err := s.repo.ByID(ctx, keyID)
+	if err != nil {
+		return domain.Wrap(domain.ErrInternal, 500, "database error", err)
+	}
+	if key == nil || key.UserID != userID {
+		return domain.ErrKeyNotFound
+	}
+	if err := s.repo.Revoke(ctx, keyID); err != nil {
+		return domain.Wrap(domain.ErrInternal, 500, "failed to revoke key", err)
+	}
+	return nil
+}

@@ -9,12 +9,13 @@ import (
 )
 
 type Config struct {
-	Port         string
-	DatabaseURL  string
-	AuthSecret   string
-	NvidiaAPIKey string
-	OpenAIAPIKey string
-	Env          string
+	Port            string
+	DatabaseURL     string
+	AuthSecret      string
+	NvidiaAPIKey    string
+	OpenAIAPIKey    string
+	AnthropicAPIKey string
+	Env             string
 
 	RateLimitRPM    int
 	RateLimitWindow time.Duration
@@ -33,6 +34,7 @@ func Load() (*Config, error) {
 		AuthSecret:      mustGetEnv("AUTH_SECRET"),
 		NvidiaAPIKey:    getEnv("NVIDIA_API_KEY", ""),
 		OpenAIAPIKey:    getEnv("OPENAI_API_KEY", ""),
+		AnthropicAPIKey: getEnv("ANTHROPIC_API_KEY", ""),
 		Env:             getEnv("ENV", "development"),
 		RateLimitRPM:    getEnvInt("RATE_LIMIT_RPM", 60),
 		RateLimitWindow: time.Minute,

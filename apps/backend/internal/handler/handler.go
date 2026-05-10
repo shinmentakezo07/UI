@@ -1,13 +1,12 @@
 package handler
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"io"
+	"fmt"
 	"net/http"
 	"strconv"
-	"time"
+	"strings"
 
 	"dra-platform/backend/internal/config"
 	"dra-platform/backend/internal/db"
@@ -15,6 +14,7 @@ import (
 	"dra-platform/backend/internal/middleware"
 	"dra-platform/backend/internal/pkg/logger"
 	"dra-platform/backend/internal/pkg/response"
+	"dra-platform/backend/internal/provider"
 	"dra-platform/backend/internal/service"
 
 	"github.com/go-chi/chi/v5"
@@ -28,10 +28,11 @@ type Handler struct {
 	creditSvc    *service.CreditService
 	analyticsSvc *service.AnalyticsService
 	logSvc       *service.LogService
+	providerSvc  *service.ProviderService
 }
 
-func New(cfg *config.Config, database *db.DB, u *service.UserService, k *service.APIKeyService, c *service.CreditService, a *service.AnalyticsService, l *service.LogService) *Handler {
-	return &Handler{cfg: cfg, db: database, userSvc: u, keySvc: k, creditSvc: c, analyticsSvc: a, logSvc: l}
+func New(cfg *config.Config, database *db.DB, u *service.UserService, k *service.APIKeyService, c *service.CreditService, a *service.AnalyticsService, l *service.LogService, p *service.ProviderService) *Handler {
+	return &Handler{cfg: cfg, db: database, userSvc: u, keySvc: k, creditSvc: c, analyticsSvc: a, logSvc: l, providerSvc: p}
 }
 
 func parsePagination(r *http.Request) (page, limit int) {
@@ -73,12 +74,12 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, 400, "Invalid JSON body")
 		return
 	}
-	user, appErr := h.userSvc.Authenticate(r.Context(), req)
+	auth, appErr := h.userSvc.Authenticate(r.Context(), req)
 	if appErr != nil {
 		response.JSON(w, appErr.Status, response.Body{Success: false, Error: appErr.Message})
 		return
 	}
-	response.OK(w, user)
+	response.OK(w, auth)
 }
 
 func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
@@ -93,6 +94,64 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.OK(w, user)
+}
+
+func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
+		return
+	}
+	var req struct {
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid JSON body")
+		return
+	}
+	if req.Name == "" || len(req.Name) < 2 {
+		response.Error(w, 400, "Name must be at least 2 characters")
+		return
+	}
+	if req.Email == "" {
+		response.Error(w, 400, "Email is required")
+		return
+	}
+	if err := h.userSvc.UpdateProfile(r.Context(), u.ID, req.Name, req.Email); err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
+	response.OK(w, map[string]bool{"updated": true})
+}
+
+func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
+		return
+	}
+	var req struct {
+		CurrentPassword string `json:"currentPassword"`
+		NewPassword     string `json:"newPassword"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid JSON body")
+		return
+	}
+	if req.CurrentPassword == "" || req.NewPassword == "" {
+		response.Error(w, 400, "Current and new passwords are required")
+		return
+	}
+	if len(req.NewPassword) < 6 {
+		response.Error(w, 400, "New password must be at least 6 characters")
+		return
+	}
+	if err := h.userSvc.ChangePassword(r.Context(), u.ID, req.CurrentPassword, req.NewPassword); err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
+	response.OK(w, map[string]bool{"updated": true})
 }
 
 // API Keys
@@ -146,6 +205,25 @@ func (h *Handler) DeleteKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.OK(w, map[string]bool{"deleted": true})
+}
+
+func (h *Handler) RevokeKey(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
+		return
+	}
+	id := chi.URLParam(r, "id")
+	if id == "" { id = r.URL.Query().Get("id") }
+	if id == "" {
+		response.Error(w, 400, "ID required")
+		return
+	}
+	if err := h.keySvc.Revoke(r.Context(), u.ID, id); err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
+	response.OK(w, map[string]bool{"revoked": true})
 }
 
 // Credits
@@ -231,12 +309,10 @@ func (h *Handler) GetAnalytics(w http.ResponseWriter, r *http.Request) {
 
 // Models
 func (h *Handler) ListModels(w http.ResponseWriter, r *http.Request) {
-	models := []domain.ModelInfo{
-		{ID: "openai/gpt-5.4", Name: "GPT-5.4", Provider: "OpenAI", InputPricePer1k: 0.015, OutputPricePer1k: 0.045, ContextWindow: "256K", Description: "OpenAI's most capable model for complex reasoning and coding.", Capabilities: []string{"text", "code", "reasoning"}},
-		{ID: "anthropic/claude-opus-4.6-fast", Name: "Claude Opus 4.6 Fast", Provider: "Anthropic", InputPricePer1k: 0.008, OutputPricePer1k: 0.024, ContextWindow: "200K", Description: "Anthropic's flagship model with exceptional reasoning.", Capabilities: []string{"text", "code", "analysis"}},
-		{ID: "google/gemini-3-flash-preview", Name: "Gemini 3 Flash Preview", Provider: "Google", InputPricePer1k: 0.0002, OutputPricePer1k: 0.0008, ContextWindow: "2M", Description: "Google's fast and cost-effective multimodal model.", Capabilities: []string{"text", "vision", "multimodal"}},
-		{ID: "moonshotai/kimi-k2.5", Name: "Kimi K2.5", Provider: "Moonshot AI", InputPricePer1k: 0.0003, OutputPricePer1k: 0.0009, ContextWindow: "256K", Description: "Long-context model excellent for document analysis.", Capabilities: []string{"text", "long-context"}},
-		{ID: "nvidia/qwen3-coder-480b", Name: "Qwen3 Coder 480B", Provider: "NVIDIA", InputPricePer1k: 0.001, OutputPricePer1k: 0.003, ContextWindow: "128K", Description: "Specialized coding model with strong code generation.", Capabilities: []string{"text", "code"}},
+	models, err := h.providerSvc.ListModels(r.Context())
+	if err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
 	}
 	response.OK(w, models)
 }
@@ -246,11 +322,6 @@ func (h *Handler) ChatProxy(w http.ResponseWriter, r *http.Request) {
 	u := middleware.GetUser(r)
 	if u == nil {
 		response.Error(w, 401, "Authentication required")
-		return
-	}
-
-	if err := h.creditSvc.CheckBalance(r.Context(), u.ID, 1500); err != nil {
-		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
 		return
 	}
 
@@ -264,39 +335,36 @@ func (h *Handler) ChatProxy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiKey := h.cfg.AIAPIKey()
-	if apiKey == "" {
-		response.Error(w, 503, "AI API key not configured")
+	if req.Model == "" {
+		req.Model = h.providerSvc.DefaultModel()
+	}
+
+	// Estimate cost for pre-check
+	estInput, estOutput := h.providerSvc.EstimateTokens(req.Model, req.Messages)
+	estimatedCost := (estInput + estOutput) * 2 // rough cost multiplier
+	if estimatedCost < 100 {
+		estimatedCost = 100
+	}
+
+	if err := h.creditSvc.CheckBalance(r.Context(), u.ID, estimatedCost); err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
 		return
 	}
 
-	body := map[string]interface{}{
-		"model":    req.Model,
-		"messages": req.Messages,
-		"stream":   true,
-		"system":   "You are Shinmen, a distinguished PhD in Computer Science and Information Technology with over 20 years of experience.",
+	// Handle non-streaming
+	stream := false
+	if r.URL.Query().Get("stream") == "true" {
+		stream = true
 	}
-	bodyBytes, _ := json.Marshal(body)
+	if req.Messages != nil && len(req.Messages) > 0 {
+		// peek at body if stream flag was in json; already decoded
+		// We rely on query param for now. Frontend can set ?stream=true
+	}
 
-	proxyReq, err := http.NewRequestWithContext(r.Context(), "POST", "https://integrate.api.nvidia.com/v1/chat/completions", bytes.NewReader(bodyBytes))
+	// Always stream for now to match existing behavior
+	ch, err := h.providerSvc.ChatStream(r.Context(), req)
 	if err != nil {
-		response.Error(w, 502, err.Error())
-		return
-	}
-	proxyReq.Header.Set("Authorization", "Bearer "+apiKey)
-	proxyReq.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{Timeout: 120 * time.Second}
-	resp, err := client.Do(proxyReq)
-	if err != nil {
-		response.Error(w, 502, err.Error())
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		b, _ := io.ReadAll(resp.Body)
-		response.Error(w, resp.StatusCode, string(b))
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
 		return
 	}
 
@@ -305,9 +373,57 @@ func (h *Handler) ChatProxy(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
 	w.WriteHeader(http.StatusOK)
 
-	io.Copy(w, resp.Body)
+	var outputTokens int
+	var outputBuf strings.Builder
+	flusher, ok := w.(http.Flusher)
 
-	// Async logging — capture values before spawning goroutine
+	done := r.Context().Done()
+	for {
+		select {
+		case chunk, more := <-ch:
+			if !more {
+				goto FINISH
+			}
+			if chunk.Content != "" {
+				outputBuf.WriteString(chunk.Content)
+				outputTokens += provider.CountTokens(chunk.Content)
+				data, _ := json.Marshal(map[string]interface{}{
+					"choices": []map[string]interface{}{{
+						"delta": map[string]string{"content": chunk.Content},
+					}},
+				})
+				fmt.Fprintf(w, "data: %s\n\n", string(data))
+				if ok {
+					flusher.Flush()
+				}
+			}
+			if chunk.FinishReason != "" {
+				fmt.Fprintf(w, "data: [DONE]\n\n")
+				if ok {
+					flusher.Flush()
+				}
+				goto FINISH
+			}
+		case <-done:
+			goto FINISH
+		}
+	}
+
+FINISH:
+	inputTokens := provider.CountTokens(outputBuf.String()) // rough estimate for input
+	if inputTokens == 0 {
+		inputTokens = len(req.Messages) * 50
+	}
+	if outputTokens == 0 {
+		outputTokens = inputTokens / 2
+	}
+	cost := (inputTokens + outputTokens) * 2
+	if cost < 100 {
+		cost = 100
+	}
+	latency := 0
+
+	// Async logging
 	apiKeyID := ""
 	if k := middleware.GetAPIKey(r); k != nil {
 		apiKeyID = k.ID
@@ -320,7 +436,7 @@ func (h *Handler) ChatProxy(w http.ResponseWriter, r *http.Request) {
 	model := req.Model
 
 	go func() {
-		_, logErr := h.creditSvc.LogAndDeduct(context.Background(), userID, akID, model, 1000, 500, 1500, 0)
+		_, logErr := h.creditSvc.LogAndDeduct(context.Background(), userID, akID, model, inputTokens, outputTokens, cost, latency)
 		if logErr != nil {
 			logger.Error("post_chat_billing_failed", "error", logErr.Error(), "user_id", userID)
 		}

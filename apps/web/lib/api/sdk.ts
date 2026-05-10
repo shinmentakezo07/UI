@@ -1,5 +1,13 @@
 import { ApiResponse } from "./types";
-import { ApiError, UnauthorizedError, RateLimitError, PaymentRequiredError } from "./errors";
+import {
+  ApiError,
+  UnauthorizedError,
+  ForbiddenError,
+  NotFoundError,
+  BadRequestError,
+  RateLimitError,
+  PaymentRequiredError,
+} from "./errors";
 
 // Domain types matching Go backend
 export interface User {
@@ -8,6 +16,11 @@ export interface User {
   email: string;
   role: string;
   createdAt: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
 }
 
 export interface APIKey {
@@ -60,7 +73,7 @@ export interface ModelInfo {
   provider: string;
   inputPricePer1k: number;
   outputPricePer1k: number;
-  contextWindow: string;
+  contextWindow: number;
   description: string;
   capabilities: string[];
 }
@@ -68,6 +81,13 @@ export interface ModelInfo {
 export interface ChatMessage {
   role: string;
   content: string;
+}
+
+export interface ChatCompletionChunk {
+  choices: Array<{
+    delta: { content?: string };
+    finish_reason?: string;
+  }>;
 }
 
 export interface PaginatedResult<T> {
@@ -110,15 +130,21 @@ export interface PlatformStats {
 export interface DraSDKConfig {
   baseUrl?: string;
   apiKey?: string;
+  timeout?: number;
+  retries?: number;
 }
 
 class DraSDK {
   private baseUrl: string;
   private apiKey?: string;
+  private timeout: number;
+  private retries: number;
 
   constructor(config: DraSDKConfig = {}) {
     this.baseUrl = config.baseUrl || "";
     this.apiKey = config.apiKey;
+    this.timeout = config.timeout || 30000;
+    this.retries = config.retries ?? 2;
   }
 
   setApiKey(key: string) {
@@ -133,6 +159,39 @@ class DraSDK {
       h["x-api-key"] = this.apiKey;
     }
     return h;
+  }
+
+  private async fetchWithTimeout(
+    url: string,
+    init: RequestInit
+  ): Promise<Response> {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), this.timeout);
+    try {
+      const res = await fetch(url, { ...init, signal: controller.signal });
+      return res;
+    } finally {
+      clearTimeout(id);
+    }
+  }
+
+  private mapError(status: number, message: string): ApiError {
+    switch (status) {
+      case 400:
+        return new BadRequestError(message);
+      case 401:
+        return new UnauthorizedError(message);
+      case 403:
+        return new ForbiddenError(message);
+      case 404:
+        return new NotFoundError(message);
+      case 402:
+        return new PaymentRequiredError(message);
+      case 429:
+        return new RateLimitError(message);
+      default:
+        return new ApiError(message, status);
+    }
   }
 
   private async request<T>(
@@ -161,35 +220,51 @@ class DraSDK {
       init.body = JSON.stringify(body);
     }
 
-    const res = await fetch(url, init);
+    let lastError: Error | undefined;
+    for (let attempt = 0; attempt <= this.retries; attempt++) {
+      try {
+        const res = await this.fetchWithTimeout(url, init);
 
-    if (res.status === 401) {
-      throw new UnauthorizedError("Authentication required");
-    }
-    if (res.status === 429) {
-      throw new RateLimitError();
-    }
-    if (res.status === 402) {
-      throw new PaymentRequiredError();
-    }
+        // For non-JSON responses (like SSE streams), return raw response
+        const contentType = res.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) {
+          if (!res.ok) {
+            const text = await res.text();
+            throw this.mapError(res.status, text || res.statusText);
+          }
+          return res as unknown as T;
+        }
 
-    // For non-JSON responses (like SSE streams), return raw response
-    const contentType = res.headers.get("content-type") || "";
-    if (!contentType.includes("application/json")) {
-      if (!res.ok) {
-        const text = await res.text();
-        throw new ApiError(text || res.statusText, res.status);
+        const json = (await res.json()) as ApiResponse<T>;
+
+        if (!res.ok || !json.success) {
+          throw this.mapError(
+            res.status,
+            json.error || res.statusText
+          );
+        }
+
+        return json.data as T;
+      } catch (err) {
+        lastError = err as Error;
+        // Don't retry on client errors (4xx) except 429
+        if (err instanceof ApiError) {
+          if (err.status < 500 && err.status !== 429) {
+            throw err;
+          }
+        }
+        // Don't retry on abort
+        if (err instanceof DOMException && err.name === "AbortError") {
+          throw new ApiError("Request timeout", 408);
+        }
+        if (attempt < this.retries) {
+          await new Promise((r) =>
+            setTimeout(r, Math.pow(2, attempt) * 500)
+          );
+        }
       }
-      return res as unknown as T;
     }
-
-    const json = (await res.json()) as ApiResponse<T>;
-
-    if (!res.ok || !json.success) {
-      throw new ApiError(json.error || res.statusText, res.status);
-    }
-
-    return json.data as T;
+    throw lastError || new ApiError("Request failed");
   }
 
   private async paginatedRequest<T>(
@@ -204,25 +279,24 @@ class DraSDK {
     const qs = params.toString();
     if (qs) url += `?${qs}`;
 
-    const res = await fetch(url, {
+    const res = await this.fetchWithTimeout(url, {
       method: "GET",
       headers: this.headers(),
       credentials: "include",
     });
 
-    if (res.status === 401) {
-      throw new UnauthorizedError("Authentication required");
-    }
-    if (res.status === 429) {
-      throw new RateLimitError();
-    }
-    if (res.status === 402) {
-      throw new PaymentRequiredError();
+    const contentType = res.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      if (!res.ok) {
+        const text = await res.text();
+        throw this.mapError(res.status, text || res.statusText);
+      }
+      return res as unknown as PaginatedResult<T>;
     }
 
     const json = (await res.json()) as ApiResponse<T[]>;
     if (!res.ok || !json.success) {
-      throw new ApiError(json.error || res.statusText, res.status);
+      throw this.mapError(res.status, json.error || res.statusText);
     }
 
     return {
@@ -236,7 +310,10 @@ class DraSDK {
 
   // Health
   health() {
-    return this.request<{ status: string; version: string }>("GET", "/api/health");
+    return this.request<{ status: string; version: string }>(
+      "GET",
+      "/health"
+    );
   }
 
   // Auth
@@ -245,11 +322,30 @@ class DraSDK {
   }
 
   login(data: { email: string; password: string }) {
-    return this.request<User>("POST", "/api/auth/login", data);
+    return this.request<AuthResponse>("POST", "/api/auth/login", data);
   }
 
   me() {
     return this.request<User>("GET", "/api/auth/me");
+  }
+
+  updateProfile(data: { name: string; email: string }) {
+    return this.request<{ updated: boolean }>(
+      "PUT",
+      "/api/auth/profile",
+      data
+    );
+  }
+
+  changePassword(data: {
+    currentPassword: string;
+    newPassword: string;
+  }) {
+    return this.request<{ updated: boolean }>(
+      "PUT",
+      "/api/auth/password",
+      data
+    );
   }
 
   // API Keys
@@ -262,7 +358,17 @@ class DraSDK {
   }
 
   deleteKey(id: string) {
-    return this.request<{ deleted: boolean }>("DELETE", `/api/keys`, undefined, { id });
+    return this.request<{ deleted: boolean }>(
+      "DELETE",
+      `/api/keys/${encodeURIComponent(id)}`
+    );
+  }
+
+  revokeKey(id: string) {
+    return this.request<{ revoked: boolean }>(
+      "POST",
+      `/api/keys/${encodeURIComponent(id)}/revoke`
+    );
   }
 
   // Credits
@@ -271,17 +377,27 @@ class DraSDK {
   }
 
   purchaseCredits(data: { amount: number; description?: string }) {
-    return this.request<CreditTransaction>("POST", "/api/credits/purchase", data);
+    return this.request<CreditTransaction>(
+      "POST",
+      "/api/credits/purchase",
+      data
+    );
   }
 
   // Transactions
   listTransactions(page?: number, limit?: number) {
-    return this.paginatedRequest<CreditTransaction>("/api/transactions", { page, limit });
+    return this.paginatedRequest<CreditTransaction>(
+      "/api/transactions",
+      { page, limit }
+    );
   }
 
   // Logs
   listLogs(page?: number, limit?: number) {
-    return this.paginatedRequest<APILog>("/api/logs", { page, limit });
+    return this.paginatedRequest<APILog>("/api/logs", {
+      page,
+      limit,
+    });
   }
 
   // Analytics
@@ -294,14 +410,18 @@ class DraSDK {
     return this.request<ModelInfo[]>("GET", "/api/models");
   }
 
-  // Chat
+  // Chat (non-streaming)
   chat(data: { model: string; messages: ChatMessage[] }) {
-    return this.request<Response>("POST", "/api/chat", data);
+    return this.request<ChatCompletionChunk>("POST", "/api/chat", data);
   }
 
-  async *chatStream(data: { model: string; messages: ChatMessage[] }): AsyncGenerator<string, void, unknown> {
+  // Chat streaming with parsed SSE chunks
+  async *chatStream(data: {
+    model: string;
+    messages: ChatMessage[];
+  }): AsyncGenerator<string, void, unknown> {
     const url = `${this.baseUrl}/api/chat`;
-    const res = await fetch(url, {
+    const res = await this.fetchWithTimeout(url, {
       method: "POST",
       headers: this.headers(),
       credentials: "include",
@@ -310,7 +430,7 @@ class DraSDK {
 
     if (!res.ok || !res.body) {
       const text = await res.text();
-      throw new ApiError(text || res.statusText, res.status);
+      throw this.mapError(res.status, text || res.statusText);
     }
 
     const reader = res.body.getReader();
@@ -330,7 +450,16 @@ class DraSDK {
           if (line.startsWith("data: ")) {
             const payload = line.slice(6);
             if (payload === "[DONE]") return;
-            yield payload;
+            try {
+              const parsed = JSON.parse(payload) as ChatCompletionChunk;
+              const content = parsed.choices?.[0]?.delta?.content;
+              if (content) {
+                yield content;
+              }
+            } catch {
+              // If not valid JSON, yield raw payload
+              yield payload;
+            }
           }
         }
       }
@@ -341,11 +470,17 @@ class DraSDK {
 
   // Admin
   adminListUsers(page?: number, limit?: number) {
-    return this.paginatedRequest<User>("/api/admin/users", { page, limit });
+    return this.paginatedRequest<User>("/api/admin/users", {
+      page,
+      limit,
+    });
   }
 
   adminDeleteUser(id: string) {
-    return this.request<{ deleted: boolean }>("DELETE", `/api/admin/users`, undefined, { id });
+    return this.request<{ deleted: boolean }>(
+      "DELETE",
+      `/api/admin/users/${encodeURIComponent(id)}`
+    );
   }
 
   adminStats() {

@@ -4,17 +4,19 @@ import (
 	"context"
 
 	"dra-platform/backend/internal/domain"
+	"dra-platform/backend/internal/pkg/token"
 	"dra-platform/backend/internal/repository"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
-	repo *repository.UserRepo
+	repo   *repository.UserRepo
+	secret string
 }
 
-func NewUserService(repo *repository.UserRepo) *UserService {
-	return &UserService{repo: repo}
+func NewUserService(repo *repository.UserRepo, secret string) *UserService {
+	return &UserService{repo: repo, secret: secret}
 }
 
 func (s *UserService) Register(ctx context.Context, req domain.SignupRequest) (*domain.User, *domain.AppError) {
@@ -43,7 +45,7 @@ func (s *UserService) Register(ctx context.Context, req domain.SignupRequest) (*
 	return user, nil
 }
 
-func (s *UserService) Authenticate(ctx context.Context, req domain.LoginRequest) (*domain.User, *domain.AppError) {
+func (s *UserService) Authenticate(ctx context.Context, req domain.LoginRequest) (*domain.AuthResponse, *domain.AppError) {
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
@@ -60,8 +62,13 @@ func (s *UserService) Authenticate(ctx context.Context, req domain.LoginRequest)
 		return nil, domain.NewError(domain.ErrUnauthorized, 401, "Invalid credentials")
 	}
 
+	token, err := token.Generate(user.ID, user.Email, user.Role, s.secret)
+	if err != nil {
+		return nil, domain.Wrap(domain.ErrInternal, 500, "token generation failed", err)
+	}
+
 	user.Password = nil
-	return user, nil
+	return &domain.AuthResponse{User: *user, Token: token}, nil
 }
 
 func (s *UserService) GetByID(ctx context.Context, id string) (*domain.User, *domain.AppError) {
@@ -85,6 +92,34 @@ func (s *UserService) List(ctx context.Context, page, limit int) ([]domain.User,
 		users[i].Password = nil
 	}
 	return users, total, nil
+}
+
+func (s *UserService) UpdateProfile(ctx context.Context, id, name, email string) *domain.AppError {
+	if err := s.repo.UpdateProfile(ctx, id, name, email); err != nil {
+		return domain.Wrap(domain.ErrInternal, 500, "failed to update profile", err)
+	}
+	return nil
+}
+
+func (s *UserService) ChangePassword(ctx context.Context, id, currentPassword, newPassword string) *domain.AppError {
+	user, err := s.repo.ByID(ctx, id)
+	if err != nil {
+		return domain.Wrap(domain.ErrInternal, 500, "database error", err)
+	}
+	if user == nil || user.Password == nil {
+		return domain.ErrUserNotFound
+	}
+	if !CheckPassword(currentPassword, *user.Password) {
+		return domain.NewError(domain.ErrUnauthorized, 401, "Current password is incorrect")
+	}
+	hash, err := HashPassword(newPassword)
+	if err != nil {
+		return domain.Wrap(domain.ErrInternal, 500, "password hashing failed", err)
+	}
+	if err := s.repo.UpdatePassword(ctx, id, hash); err != nil {
+		return domain.Wrap(domain.ErrInternal, 500, "failed to update password", err)
+	}
+	return nil
 }
 
 func (s *UserService) Delete(ctx context.Context, id string) *domain.AppError {

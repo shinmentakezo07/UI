@@ -76,6 +76,11 @@ func (r *APIKeyRepo) Touch(ctx context.Context, id string) error {
 	return err
 }
 
+func (r *APIKeyRepo) Revoke(ctx context.Context, id string) error {
+	_, err := r.db.Pool.Exec(ctx, `UPDATE api_keys SET revoked_at = NOW() WHERE id = $1`, id)
+	return err
+}
+
 func (r *APIKeyRepo) Count(ctx context.Context) (int, error) {
 	var n int
 	err := r.db.Pool.QueryRow(ctx, `SELECT COUNT(*) FROM api_keys`).Scan(&n)

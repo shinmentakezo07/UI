@@ -72,7 +72,11 @@ func TestFullUserJourney(t *testing.T) {
 	if !ok {
 		t.Fatalf("login response missing data field")
 	}
-	userID, _ := data["id"].(string)
+	userData, ok := data["user"].(map[string]any)
+	if !ok {
+		t.Fatalf("login response missing user field")
+	}
+	userID, _ := userData["id"].(string)
 	if userID == "" {
 		userID = "journey-user-id"
 	}

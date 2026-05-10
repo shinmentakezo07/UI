@@ -14,6 +14,7 @@ import (
 	"dra-platform/backend/internal/domain"
 	"dra-platform/backend/internal/handler"
 	"dra-platform/backend/internal/middleware"
+	"dra-platform/backend/internal/provider"
 	"dra-platform/backend/internal/repository"
 	"dra-platform/backend/internal/service"
 
@@ -76,13 +77,18 @@ func NewTestServer() (*httptest.Server, *db.DB, error) {
 	txRepo := repository.NewTransactionRepo(database)
 	logRepo := repository.NewLogRepo(database)
 
-	userSvc := service.NewUserService(userRepo)
+	registry := provider.NewRegistry()
+	registry.Register(provider.NewNVIDIAProvider(cfg.NvidiaAPIKey))
+	registry.Register(provider.NewOpenAIProvider(cfg.OpenAIAPIKey))
+
+	userSvc := service.NewUserService(userRepo, cfg.AuthSecret)
 	keySvc := service.NewAPIKeyService(keyRepo)
 	creditSvc := service.NewCreditService(database, creditsRepo, txRepo, logRepo)
 	analyticsSvc := service.NewAnalyticsService(logRepo, userRepo, creditsRepo, keyRepo)
 	logSvc := service.NewLogService(logRepo)
+	providerSvc := service.NewProviderService(registry)
 
-	h := handler.New(cfg, database, userSvc, keySvc, creditSvc, analyticsSvc, logSvc)
+	h := handler.New(cfg, database, userSvc, keySvc, creditSvc, analyticsSvc, logSvc, providerSvc)
 
 	authMW := middleware.Auth(cfg,
 		func(ctx context.Context, key string) (*domain.User, *domain.APIKey, error) {
@@ -105,15 +111,26 @@ func NewTestServer() (*httptest.Server, *db.DB, error) {
 	r.Group(func(r chi.Router) {
 		r.Use(authMW)
 		r.Get("/auth/me", h.Me)
+		r.Put("/auth/profile", h.UpdateProfile)
+		r.Put("/auth/password", h.ChangePassword)
 		r.Get("/api/keys", h.ListKeys)
 		r.Post("/api/keys", h.CreateKey)
 		r.Delete("/api/keys/{id}", h.DeleteKey)
+		r.Post("/api/keys/{id}/revoke", h.RevokeKey)
 		r.Get("/api/credits", h.GetCredits)
 		r.Post("/api/credits/purchase", h.PurchaseCredits)
 		r.Get("/api/transactions", h.ListTransactions)
 		r.Get("/api/logs", h.ListLogs)
 		r.Get("/api/analytics", h.GetAnalytics)
 		r.Get("/api/models", h.ListModels)
+		r.Post("/api/chat", h.ChatProxy)
+	})
+
+	r.Group(func(r chi.Router) {
+		r.Use(authMW)
+		r.Get("/api/admin/users", middleware.RequireAdmin(h.AdminListUsers))
+		r.Delete("/api/admin/users/{id}", middleware.RequireAdmin(h.AdminDeleteUser))
+		r.Get("/api/admin/stats", middleware.RequireAdmin(h.AdminStats))
 	})
 
 	return httptest.NewServer(r), database, nil

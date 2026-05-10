@@ -16,6 +16,7 @@ import (
 	"dra-platform/backend/internal/handler"
 	appmiddleware "dra-platform/backend/internal/middleware"
 	"dra-platform/backend/internal/pkg/logger"
+	"dra-platform/backend/internal/provider"
 	"dra-platform/backend/internal/repository"
 	"dra-platform/backend/internal/service"
 
@@ -51,15 +52,31 @@ func main() {
 	txRepo := repository.NewTransactionRepo(database)
 	logRepo := repository.NewLogRepo(database)
 
+	// Provider registry
+	registry := provider.NewRegistry()
+	if cfg.NvidiaAPIKey != "" {
+		registry.Register(provider.NewNVIDIAProvider(cfg.NvidiaAPIKey))
+	}
+	if cfg.OpenAIAPIKey != "" {
+		registry.Register(provider.NewOpenAIProvider(cfg.OpenAIAPIKey))
+	}
+	if cfg.AnthropicAPIKey != "" {
+		registry.Register(provider.NewAnthropicProvider(cfg.AnthropicAPIKey))
+	}
+	if len(registry.Providers()) == 0 {
+		logger.Warn("no_ai_providers_configured")
+	}
+
 	// Services
-	userSvc := service.NewUserService(userRepo)
+	userSvc := service.NewUserService(userRepo, cfg.AuthSecret)
 	keySvc := service.NewAPIKeyService(keyRepo)
 	creditSvc := service.NewCreditService(database, creditsRepo, txRepo, logRepo)
 	analyticsSvc := service.NewAnalyticsService(logRepo, userRepo, creditsRepo, keyRepo)
 	logSvc := service.NewLogService(logRepo)
+	providerSvc := service.NewProviderService(registry)
 
 	// Handler
-	h := handler.New(cfg, database, userSvc, keySvc, creditSvc, analyticsSvc, logSvc)
+	h := handler.New(cfg, database, userSvc, keySvc, creditSvc, analyticsSvc, logSvc, providerSvc)
 
 	// Router
 	r := chi.NewRouter()
@@ -110,10 +127,13 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(authMW)
 		r.Get("/auth/me", h.Me)
+		r.Put("/auth/profile", h.UpdateProfile)
+		r.Put("/auth/password", h.ChangePassword)
 
 		r.Get("/api/keys", h.ListKeys)
 		r.Post("/api/keys", h.CreateKey)
 		r.Delete("/api/keys/{id}", h.DeleteKey)
+		r.Post("/api/keys/{id}/revoke", h.RevokeKey)
 
 		r.Get("/api/credits", h.GetCredits)
 		r.Post("/api/credits/purchase", h.PurchaseCredits)
